@@ -37,33 +37,32 @@
                                     <action selector="go:" destination="BYZ-38-t0r" eventType="touchUpInside" id="bbD-au-i2P"/>
                                 </connections>
                             </button>
-                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="Current status" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I2C-A3-Dsw">
-                                <rect key="frame" x="71.5" y="314.5" width="177.5" height="38"/>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Current status" lineBreakMode="tailTruncation" numberOfLines="3" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="I2C-A3-Dsw">
+                                <rect key="frame" x="71.5" y="265" width="177.5" height="38"/>
                                 <fontDescription key="fontDescription" name="SourceSansPro-Regular" family="Source Sans Pro" pointSize="30"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="7" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y4g-H7-kgJ">
-                                <rect key="frame" x="26" y="387" width="272" height="173"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="11" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y4g-H7-kgJ">
+                                <rect key="frame" x="26" y="404" width="272" height="150"/>
                                 <string key="text">iOS 10.x jailbreak by sxx with the sock port exploit(Jake James).
-Patches and other resources are inherit from doubleH3lix(tihmstar).
-Special thanks to
- Jake James, tihmstar, qwertyoruiop
+Patches and other resources are inherited from doubleH3lix(tihmstar).
+Special thanks to Jake James, tihmstar, qwertyoruiop
 jk9357</string>
                                 <fontDescription key="fontDescription" name="SourceSansPro-Regular" family="Source Sans Pro" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ahH-xF-ySJ">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ahH-xF-ySJ">
                                 <rect key="frame" x="5" y="61" width="310" height="128"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" text="H3lix" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BVO-DH-O9N">
-                                        <rect key="frame" x="73" y="-12" width="237" height="140"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="H3lix" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BVO-DH-O9N">
+                                        <rect key="frame" x="73" y="11.5" width="225.5" height="94"/>
                                         <fontDescription key="fontDescription" name="KohinoorBangla-Regular" family="Kohinoor Bangla" pointSize="100"/>
                                         <color key="textColor" red="0.27403223510000002" green="0.66868633030000002" blue="0.76472240690000004" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" image="icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="nZB-GU-GcB">
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="icon.png" translatesAutoresizingMaskIntoConstraints="NO" id="nZB-GU-GcB">
                                         <rect key="frame" x="0.0" y="18" width="81" height="81"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="81" id="cKn-O1-M8T"/>
@@ -73,9 +72,13 @@ jk9357</string>
                                 </subviews>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <constraints>
+                                    <constraint firstItem="BVO-DH-O9N" firstAttribute="leading" secondItem="ahH-xF-ySJ" secondAttribute="leading" constant="73" id="1ve-5r-VQq"/>
+                                    <constraint firstAttribute="width" constant="310" id="AqI-Zc-Bsh"/>
                                     <constraint firstItem="BVO-DH-O9N" firstAttribute="centerY" secondItem="nZB-GU-GcB" secondAttribute="centerY" id="Ixb-3l-u9v"/>
                                     <constraint firstItem="nZB-GU-GcB" firstAttribute="centerY" secondItem="ahH-xF-ySJ" secondAttribute="centerY" constant="-5.5" id="SzW-ah-J12" userLabel="icon.png.centerY = centerY"/>
-                                    <constraint firstItem="BVO-DH-O9N" firstAttribute="centerY" secondItem="ahH-xF-ySJ" secondAttribute="centerY" constant="-6" id="mGP-Di-6Ti" userLabel="H3lix.centerY = centerY "/>
+                                    <constraint firstAttribute="height" constant="128" id="eQA-xd-eLU"/>
+                                    <constraint firstItem="BVO-DH-O9N" firstAttribute="top" secondItem="ahH-xF-ySJ" secondAttribute="top" constant="11.5" id="fHG-sq-ScE"/>
+                                    <constraint firstItem="BVO-DH-O9N" firstAttribute="top" secondItem="ahH-xF-ySJ" secondAttribute="top" constant="11.5" id="rvh-HN-3GB"/>
                                     <constraint firstItem="BVO-DH-O9N" firstAttribute="leading" secondItem="nZB-GU-GcB" secondAttribute="trailing" constant="-8" id="uxD-Nk-HNy"/>
                                 </constraints>
                             </view>
@@ -83,13 +86,17 @@ jk9357</string>
                         <color key="backgroundColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="y4g-H7-kgJ" secondAttribute="trailing" constant="22" id="2nT-f2-WNU"/>
-                            <constraint firstItem="y4g-H7-kgJ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="26" id="Bzm-WR-fgq"/>
+                            <constraint firstItem="I2C-A3-Dsw" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="8G8-RD-dXq"/>
+                            <constraint firstItem="y4g-H7-kgJ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="26" id="Bzm-WR-fgq">
+                                <string key="userLabel">iOS 10.x jailbreak by sxx with the sock port exploit(Jake James). Patches and other resources are inherited from doubleH3lix(tihmstar). Special thanks to Jake James, tihmstar, qwertyoruiop jk9357.leading = Safe Area.leading + 26</string>
+                            </constraint>
                             <constraint firstItem="I2C-A3-Dsw" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="G0G-mG-kTr"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="y4g-H7-kgJ" secondAttribute="bottom" constant="14" id="QRy-Ps-CeS"/>
                             <constraint firstItem="EGB-Uo-0QW" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="R3y-Yz-PHw"/>
                             <constraint firstItem="EGB-Uo-0QW" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="jG6-8o-0ef"/>
+                            <constraint firstItem="I2C-A3-Dsw" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="kDA-hi-eRa"/>
                             <constraint firstItem="ahH-xF-ySJ" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="61" id="lcx-G7-H45"/>
                             <constraint firstItem="ahH-xF-ySJ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="rME-7u-dR6"/>
-                            <constraint firstAttribute="bottom" secondItem="y4g-H7-kgJ" secondAttribute="bottom" constant="8" id="yBV-oJ-AKu"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
