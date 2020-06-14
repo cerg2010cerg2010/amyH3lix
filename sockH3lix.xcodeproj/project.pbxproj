@@ -8,14 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		6848D100203CE91700A0FFE2 /* offsets.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6848D0FD203CE91700A0FFE2 /* offsets.mm */; };
-		6848D101203CE91700A0FFE2 /* v0rtex.m in Sources */ = {isa = PBXBuildFile; fileRef = 6848D0FF203CE91700A0FFE2 /* v0rtex.m */; };
 		6848D104203CE93100A0FFE2 /* liboffsetfinder64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6848D103203CE93100A0FFE2 /* liboffsetfinder64.a */; };
 		68805418203CEB060003A817 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68805417203CEB060003A817 /* IOKit.framework */; };
 		87149C6D204872DB009658CA /* Cydia-10.tar in Resources */ = {isa = PBXBuildFile; fileRef = 87149C6C204872DB009658CA /* Cydia-10.tar */; };
 		872C2D6C203EE37600929D9E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 87F9E9982039C51900C90C05 /* Main.storyboard */; };
 		8757D0A2203CF5C500B3A566 /* libplist.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8757D0A0203CF5C500B3A566 /* libplist.a */; };
 		8757D0A3203CF5C500B3A566 /* libplist++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8757D0A1203CF5C500B3A566 /* libplist++.a */; };
-		875D130A203F41FA007B798C /* banner.png in Resources */ = {isa = PBXBuildFile; fileRef = 875D1309203F41FA007B798C /* banner.png */; };
 		875D130F203F4215007B798C /* tar in Resources */ = {isa = PBXBuildFile; fileRef = 875D130C203F4214007B798C /* tar */; };
 		875D1310203F4215007B798C /* launchctl in Resources */ = {isa = PBXBuildFile; fileRef = 875D130D203F4215007B798C /* launchctl */; };
 		8786D4FB203E12F900962200 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 87F9E99D2039C51900C90C05 /* LaunchScreen.storyboard */; };
@@ -26,14 +24,18 @@
 		87F9E99C2039C51900C90C05 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 87F9E99B2039C51900C90C05 /* Assets.xcassets */; };
 		87F9E9A22039C51900C90C05 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 87F9E9A12039C51900C90C05 /* main.m */; };
 		87F9E9AD2039C66500C90C05 /* jailbreak.mm in Sources */ = {isa = PBXBuildFile; fileRef = 87F9E9AC2039C66500C90C05 /* jailbreak.mm */; };
+		AC5CB92D2495FC9A00FE7C74 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = AC5CB92C2495FC9A00FE7C74 /* icon.png */; };
+		ACAAEE302494ED82006BF6AE /* sock_port_exploit.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */; };
+		ACAAEE332494EDA7006BF6AE /* exploit_utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */; };
+		ACAAEE3C2494EE70006BF6AE /* iosurface.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE3B2494EE70006BF6AE /* iosurface.c */; };
+		ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */; };
+		ACAAEE4124950059006BF6AE /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE4024950059006BF6AE /* offsets.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		6848D0FB203CE91700A0FFE2 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		6848D0FC203CE91700A0FFE2 /* offsets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = offsets.h; sourceTree = "<group>"; };
 		6848D0FD203CE91700A0FFE2 /* offsets.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = offsets.mm; sourceTree = "<group>"; };
-		6848D0FE203CE91700A0FFE2 /* v0rtex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = v0rtex.h; sourceTree = "<group>"; };
-		6848D0FF203CE91700A0FFE2 /* v0rtex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = v0rtex.m; sourceTree = "<group>"; };
 		6848D103203CE93100A0FFE2 /* liboffsetfinder64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liboffsetfinder64.a; path = doubleH3lix/liboffsetfinder64.a; sourceTree = "<group>"; };
 		68805417203CEB060003A817 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = IOKit.framework; sourceTree = "<group>"; };
 		87149C6C204872DB009658CA /* Cydia-10.tar */ = {isa = PBXFileReference; lastKnownFileType = archive.tar; name = "Cydia-10.tar"; path = "doubleH3lix/jbresources/Cydia-10.tar"; sourceTree = "<group>"; };
@@ -41,13 +43,12 @@
 		8757D092203CF2DB00B3A566 /* libboringssl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libboringssl.tbd; path = usr/lib/libboringssl.tbd; sourceTree = SDKROOT; };
 		8757D0A0203CF5C500B3A566 /* libplist.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplist.a; path = doubleH3lix/libplist.a; sourceTree = "<group>"; };
 		8757D0A1203CF5C500B3A566 /* libplist++.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libplist++.a"; path = "doubleH3lix/libplist++.a"; sourceTree = "<group>"; };
-		875D1309203F41FA007B798C /* banner.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = banner.png; path = "doubleH3lix/ui resources/banner.png"; sourceTree = "<group>"; };
 		875D130C203F4214007B798C /* tar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = tar; path = doubleH3lix/jbresources/tar; sourceTree = "<group>"; };
 		875D130D203F4215007B798C /* launchctl */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = launchctl; path = doubleH3lix/jbresources/launchctl; sourceTree = "<group>"; };
 		8787FA21203DEF250000BDA5 /* sbops.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sbops.h; sourceTree = "<group>"; };
 		87C4C2C9203DE1AD0047802A /* libimg4tool.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimg4tool.a; path = doubleH3lix/libimg4tool.a; sourceTree = "<group>"; };
 		87D07A64203EB74C00C7D96D /* pte_stuff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pte_stuff.h; sourceTree = "<group>"; };
-		87F9E98F2039C51900C90C05 /* doubleH3lix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = doubleH3lix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		87F9E98F2039C51900C90C05 /* sockH3lix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sockH3lix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87F9E9922039C51900C90C05 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		87F9E9932039C51900C90C05 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		87F9E9952039C51900C90C05 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
@@ -60,6 +61,16 @@
 		87F9E9A92039C5AB00C90C05 /* ui resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "ui resources"; sourceTree = "<group>"; };
 		87F9E9AC2039C66500C90C05 /* jailbreak.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = jailbreak.mm; sourceTree = "<group>"; };
 		87F9E9AE2039C66D00C90C05 /* jailbreak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = jailbreak.h; sourceTree = "<group>"; };
+		AC5CB92C2495FC9A00FE7C74 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		ACAAEE2E2494ED82006BF6AE /* sock_port_exploit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sock_port_exploit.h; sourceTree = "<group>"; };
+		ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sock_port_exploit.c; sourceTree = "<group>"; };
+		ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = exploit_utilities.c; sourceTree = "<group>"; };
+		ACAAEE322494EDA7006BF6AE /* exploit_utilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = exploit_utilities.h; sourceTree = "<group>"; };
+		ACAAEE3A2494EE70006BF6AE /* iosurface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iosurface.h; sourceTree = "<group>"; };
+		ACAAEE3B2494EE70006BF6AE /* iosurface.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = iosurface.c; sourceTree = "<group>"; };
+		ACAAEE3D2494EE8B006BF6AE /* kernel_memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_memory.h; sourceTree = "<group>"; };
+		ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kernel_memory.c; sourceTree = "<group>"; };
+		ACAAEE4024950059006BF6AE /* offsets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = offsets.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,7 +109,7 @@
 				87149C6C204872DB009658CA /* Cydia-10.tar */,
 				875D130D203F4215007B798C /* launchctl */,
 				875D130C203F4214007B798C /* tar */,
-				875D1309203F41FA007B798C /* banner.png */,
+				AC5CB92C2495FC9A00FE7C74 /* icon.png */,
 				87F9E9912039C51900C90C05 /* doubleH3lix */,
 				87F9E9902039C51900C90C05 /* Products */,
 				6848D102203CE93100A0FFE2 /* Frameworks */,
@@ -108,7 +119,7 @@
 		87F9E9902039C51900C90C05 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				87F9E98F2039C51900C90C05 /* doubleH3lix.app */,
+				87F9E98F2039C51900C90C05 /* sockH3lix.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -126,12 +137,19 @@
 				87F9E9AC2039C66500C90C05 /* jailbreak.mm */,
 				6848D0FB203CE91700A0FFE2 /* common.h */,
 				6848D0FC203CE91700A0FFE2 /* offsets.h */,
+				ACAAEE4024950059006BF6AE /* offsets.m */,
 				6848D0FD203CE91700A0FFE2 /* offsets.mm */,
-				6848D0FE203CE91700A0FFE2 /* v0rtex.h */,
-				6848D0FF203CE91700A0FFE2 /* v0rtex.m */,
+				ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */,
+				ACAAEE3D2494EE8B006BF6AE /* kernel_memory.h */,
+				ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */,
+				ACAAEE2E2494ED82006BF6AE /* sock_port_exploit.h */,
+				ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */,
+				ACAAEE322494EDA7006BF6AE /* exploit_utilities.h */,
 				87F9E9982039C51900C90C05 /* Main.storyboard */,
 				87F9E99B2039C51900C90C05 /* Assets.xcassets */,
 				87F9E99D2039C51900C90C05 /* LaunchScreen.storyboard */,
+				ACAAEE3B2494EE70006BF6AE /* iosurface.c */,
+				ACAAEE3A2494EE70006BF6AE /* iosurface.h */,
 				87F9E9A02039C51900C90C05 /* Info.plist */,
 				87F9E9A92039C5AB00C90C05 /* ui resources */,
 				87F9E9A12039C51900C90C05 /* main.m */,
@@ -142,9 +160,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		87F9E98E2039C51900C90C05 /* doubleH3lix */ = {
+		87F9E98E2039C51900C90C05 /* sockH3lix */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 87F9E9A52039C51900C90C05 /* Build configuration list for PBXNativeTarget "doubleH3lix" */;
+			buildConfigurationList = 87F9E9A52039C51900C90C05 /* Build configuration list for PBXNativeTarget "sockH3lix" */;
 			buildPhases = (
 				87F9E98B2039C51900C90C05 /* Sources */,
 				87F9E98C2039C51900C90C05 /* Frameworks */,
@@ -154,9 +172,9 @@
 			);
 			dependencies = (
 			);
-			name = doubleH3lix;
+			name = sockH3lix;
 			productName = doubleH3lix;
-			productReference = 87F9E98F2039C51900C90C05 /* doubleH3lix.app */;
+			productReference = 87F9E98F2039C51900C90C05 /* sockH3lix.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -165,7 +183,7 @@
 		87F9E9872039C51900C90C05 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0920;
+				LastUpgradeCheck = 1150;
 				ORGANIZATIONNAME = tihmstar;
 				TargetAttributes = {
 					87F9E98E2039C51900C90C05 = {
@@ -174,7 +192,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 87F9E98A2039C51900C90C05 /* Build configuration list for PBXProject "doubleH3lix" */;
+			buildConfigurationList = 87F9E98A2039C51900C90C05 /* Build configuration list for PBXProject "sockH3lix" */;
 			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -187,7 +205,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				87F9E98E2039C51900C90C05 /* doubleH3lix */,
+				87F9E98E2039C51900C90C05 /* sockH3lix */,
 			);
 		};
 /* End PBXProject section */
@@ -199,8 +217,8 @@
 			files = (
 				875D130F203F4215007B798C /* tar in Resources */,
 				87149C6D204872DB009658CA /* Cydia-10.tar in Resources */,
+				AC5CB92D2495FC9A00FE7C74 /* icon.png in Resources */,
 				875D1310203F4215007B798C /* launchctl in Resources */,
-				875D130A203F41FA007B798C /* banner.png in Resources */,
 				872C2D6C203EE37600929D9E /* Main.storyboard in Resources */,
 				87EEF947203F188800663566 /* ui resources in Resources */,
 				8786D4FB203E12F900962200 /* LaunchScreen.storyboard in Resources */,
@@ -215,12 +233,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6848D101203CE91700A0FFE2 /* v0rtex.m in Sources */,
+				ACAAEE4124950059006BF6AE /* offsets.m in Sources */,
+				ACAAEE332494EDA7006BF6AE /* exploit_utilities.c in Sources */,
 				87F9E9972039C51900C90C05 /* ViewController.m in Sources */,
 				87F9E9A22039C51900C90C05 /* main.m in Sources */,
 				87F9E9942039C51900C90C05 /* AppDelegate.m in Sources */,
 				87F9E9AD2039C66500C90C05 /* jailbreak.mm in Sources */,
+				ACAAEE3C2494EE70006BF6AE /* iosurface.c in Sources */,
+				ACAAEE302494ED82006BF6AE /* sock_port_exploit.c in Sources */,
 				6848D100203CE91700A0FFE2 /* offsets.mm in Sources */,
+				ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,6 +282,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -267,6 +290,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -315,6 +339,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -322,6 +347,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -355,7 +381,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4BNWD349PE;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -369,8 +395,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/doubleH3lix/libs",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.tihmstar.doubleH3lix;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sxx.sockH3lix;
+				PRODUCT_NAME = sockH3lix;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
 			};
@@ -381,7 +407,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 4BNWD349PE;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -395,8 +421,8 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/doubleH3lix/libs",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.tihmstar.doubleH3lix;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.sxx.sockH3lix;
+				PRODUCT_NAME = sockH3lix;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
 			};
@@ -405,7 +431,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		87F9E98A2039C51900C90C05 /* Build configuration list for PBXProject "doubleH3lix" */ = {
+		87F9E98A2039C51900C90C05 /* Build configuration list for PBXProject "sockH3lix" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				87F9E9A32039C51900C90C05 /* Debug */,
@@ -414,7 +440,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		87F9E9A52039C51900C90C05 /* Build configuration list for PBXNativeTarget "doubleH3lix" */ = {
+		87F9E9A52039C51900C90C05 /* Build configuration list for PBXNativeTarget "sockH3lix" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				87F9E9A62039C51900C90C05 /* Debug */,

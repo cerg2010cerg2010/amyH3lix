@@ -2,7 +2,7 @@
 #define COMMON_H
 
 #include <stdint.h>             // uint*_t
-#include <Foundation/Foundation.h>
+//#include <Foundation/Foundation.h>
 
 #define LOG(str, args...) do { NSLog(@str "\n", ##args); } while(0)
 #ifdef __LP64__
