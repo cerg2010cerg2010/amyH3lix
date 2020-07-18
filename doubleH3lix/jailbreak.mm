@@ -488,7 +488,7 @@ remappage[remapcnt++] = (x & (~PMK));\
     kernelpatches.push_back(fi->find_nonceEnabler_patch());
 
     try {
-        kernelpatches.push_back(fi->find_sandbox_patch());
+        //kernelpatches.push_back(fi->find_sandbox_patch());
     } catch (tihmstar::exception &e) {
         NSLog(@"WARNING: failed to find sandbox_patch! Assuming we're on x<10.3 and continueing anyways!");
     }
