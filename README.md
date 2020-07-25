@@ -14,8 +14,8 @@ This jailbreak tool is compatible with doubleH3lix, which means you can switch b
 - Exploit
   - v0rtex -> sock port with higher success rate.
 - Sandbox
-  - Remove a patch which fully disable sandbox for any process. This avoid NSUserdefaults (cfprefsd) stores the plist to the unsandbox path.
+  - Remove a patch which fully disable sandbox for any process. This avoid NSUserDefaults (cfprefsd) stores the plist to the unsandbox path.
   - H3lix is not open source. A binary-patched version without such sandbox patch can be achieved at [here](https://github.com/SongXiaoXi/sockH3lix/releases). Special thanks to Jake James' [script](https://gist.github.com/jakeajames/b44d8db345769a7149e97f5e155b3d46) for removing DRM.
-  - sockH3lix will call uicache with sock port exploit for sandbox escape. Closed-source H3lix without such sandbox path cannot use uicache.
+  - sockH3lix will call uicache with sock port exploit for sandbox escaping. Closed-source H3lix without such sandbox path cannot use uicache.
 - export tfp0
   - Enable hgsp4 for root process.
