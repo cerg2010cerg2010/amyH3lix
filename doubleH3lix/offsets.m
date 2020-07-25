@@ -39,7 +39,8 @@ int kstruct_offsets_10_x[] = {
     0xa0,  // KSTRUCT_OFFSET_IPC_PORT_IP_SRIGHTS,
     
     0x10,  // KSTRUCT_OFFSET_PROC_PID,
-    0x108, // KSTRUCT_OFFSET_PROC_P_FD
+    0x108, // KSTRUCT_OFFSET_PROC_P_FD,
+    0x18, // KSTRUCT_OFFSET_PROC_TASK
     
     0x0,   // KSTRUCT_OFFSET_FILEDESC_FD_OFILES
     
@@ -54,7 +55,11 @@ int kstruct_offsets_10_x[] = {
     0x14,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE_SIZE
     0x20,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE
     
-    0x6c,  // KFREE_ADDR_OFFSET
+    0x10, // KSTRUCT_OFFSET_HOST_SPECIAL
+    
+    0x6c,  // KFREE_ADDR_OFFSET,
+    0x18, //KSTRUCT_SIZE_IPC_ENTRY
+    0x8, // KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS
 };
 
 int kstruct_offsets_11_0[] = {
@@ -80,6 +85,7 @@ int kstruct_offsets_11_0[] = {
     
     0x10,  // KSTRUCT_OFFSET_PROC_PID,
     0x108, // KSTRUCT_OFFSET_PROC_P_FD
+    0x18, // KSTRUCT_OFFSET_PROC_TASK
     
     0x0,   // KSTRUCT_OFFSET_FILEDESC_FD_OFILES
     
@@ -94,7 +100,11 @@ int kstruct_offsets_11_0[] = {
     0x14,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE_SIZE
     0x20,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE
     
-    0x6c,  // KFREE_ADDR_OFFSET
+    0x10, // KSTRUCT_OFFSET_HOST_SPECIAL
+    
+    0x6c,  // KFREE_ADDR_OFFSET,
+    0x18, //KSTRUCT_SIZE_IPC_ENTRY
+    0x8, // KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS
 };
 
 int kstruct_offsets_11_3[] = {
@@ -120,6 +130,7 @@ int kstruct_offsets_11_3[] = {
     
     0x10,  // KSTRUCT_OFFSET_PROC_PID,
     0x108, // KSTRUCT_OFFSET_PROC_P_FD
+    0x18, // KSTRUCT_OFFSET_PROC_TASK
     
     0x0,   // KSTRUCT_OFFSET_FILEDESC_FD_OFILES
     
@@ -134,7 +145,11 @@ int kstruct_offsets_11_3[] = {
     0x14,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE_SIZE
     0x20,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE
     
-    0x7c,  // KFREE_ADDR_OFFSET
+    0x10, // KSTRUCT_OFFSET_HOST_SPECIAL
+    
+    0x7c,  // KFREE_ADDR_OFFSET,
+    0x18, //KSTRUCT_SIZE_IPC_ENTRY
+    0x8, // KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS
 };
 
 int kstruct_offsets_12_0[] = {
@@ -160,6 +175,7 @@ int kstruct_offsets_12_0[] = {
     
     0x60,  // KSTRUCT_OFFSET_PROC_PID,
     0x100, // KSTRUCT_OFFSET_PROC_P_FD
+    0x10, // KSTRUCT_OFFSET_PROC_TASK
     
     0x0,   // KSTRUCT_OFFSET_FILEDESC_FD_OFILES
     
@@ -174,7 +190,11 @@ int kstruct_offsets_12_0[] = {
     0x14,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE_SIZE
     0x20,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE
     
+    0x10, // KSTRUCT_OFFSET_HOST_SPECIAL
+    
     0x7c,  // KFREE_ADDR_OFFSET
+    0x18, //KSTRUCT_SIZE_IPC_ENTRY
+    0x8, // KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS
 };
 
 int koffset(enum kstruct_offset offset) {
@@ -218,4 +238,26 @@ void offsets_init() {
         printf("[-] iOS version too low, 10.0 required\n");
         exit(EXIT_FAILURE);
     }
+}
+
+#include "patchfinder64.h"
+
+extern size_t get_add_x0_x0_0x40_ret(void) {
+    static kptr_t addr = 0;
+    if (addr == 0)
+        addr = find_add_x0_x0_0x40_ret();
+    return addr;
+}
+extern size_t get_IOMalloc(void) {
+    static kptr_t addr = 0;
+    if (addr == 0)
+        addr = find_IOMalloc();
+    return addr;
+}
+
+extern size_t get_IOFree(void) {
+    static kptr_t addr = 0;
+    if (addr == 0)
+        addr = find_IOFree();
+    return addr;
 }

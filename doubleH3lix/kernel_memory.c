@@ -7,8 +7,10 @@
 //
 
 #include "kernel_memory.h"
+#include <stdbool.h>
 
 static mach_port_t tfpzero;
+extern mach_port_t tfp0;
 
 void init_kernel_memory(mach_port_t tfp0) {
     tfpzero = tfp0;
@@ -94,4 +96,78 @@ uint64_t find_port(mach_port_name_t port, uint64_t task_self) {
     uint64_t port_addr = rk64(is_table + (port_index * sizeof_ipc_entry_t));
     
     return port_addr;
+}
+
+uint64_t kread_uint64(uint64_t where){
+    uint64_t value = 0;
+    size_t sz = kread(where, &value, sizeof(value));
+    return (sz == sizeof(value)) ? value : 0;
+}
+
+uint32_t kread_uint32(uint64_t where){
+    uint32_t value = 0;
+    size_t sz = kread(where, &value, sizeof(value));
+    return (sz == sizeof(value)) ? value : 0;
+}
+
+size_t kwrite_uint64(uint64_t where, uint64_t value){
+    return kwrite(where, &value, sizeof(value));
+}
+
+size_t kwrite_uint32(uint64_t where, uint32_t value){
+    return kwrite(where, &value, sizeof(value));
+}
+
+kptr_t kmem_alloc(uint64_t size) {
+    if (!MACH_PORT_VALID(tfp0)) {
+        printf("attempt to allocate kernel memory before any kernel memory write primitives available");
+        return 0;
+    }
+
+    kern_return_t err;
+    mach_vm_address_t addr = 0;
+    mach_vm_size_t ksize = round_page_kernel(size);
+    err = mach_vm_allocate(tfp0, &addr, ksize, VM_FLAGS_ANYWHERE);
+    if (err != KERN_SUCCESS) {
+        printf("unable to allocate kernel memory via tfp0: %s %x", mach_error_string(err), err);
+        return 0;
+    }
+    
+    return addr;
+}
+
+bool kmem_free(kptr_t kaddr, uint64_t size)
+{
+    if (!MACH_PORT_VALID(tfp0)) {
+        printf("attempt to deallocate kernel memory before any kernel memory write primitives available");
+        return false;
+    }
+    
+    kern_return_t err;
+    mach_vm_size_t ksize = round_page_kernel(size);
+    err = mach_vm_deallocate(tfp0, kaddr, ksize);
+    if (err != KERN_SUCCESS) {
+        printf("unable to deallocate kernel memory via tfp0: %s %x", mach_error_string(err), err);
+        return false;
+    }
+    
+    return true;
+}
+
+bool rkbuffer(kptr_t kaddr, void* buffer, size_t length) {
+    if (!MACH_PORT_VALID(tfp0)) {
+        printf("attempt to read kernel memory but no kernel memory read primitives available");
+        return 0;
+    }
+    
+    return (kread(kaddr, buffer, length) == length);
+}
+
+bool wkbuffer(kptr_t kaddr, void* buffer, size_t length) {
+    if (!MACH_PORT_VALID(tfp0)) {
+        printf("attempt to write to kernel memory before any kernel memory write primitives available");
+        return false;
+    }
+    
+    return (kwrite(kaddr, buffer, length) == length);
 }

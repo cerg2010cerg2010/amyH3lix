@@ -73,6 +73,7 @@ enum kstruct_offset {
     /* struct proc */
     KSTRUCT_OFFSET_PROC_PID,
     KSTRUCT_OFFSET_PROC_P_FD,
+    KSTRUCT_OFFSET_PROC_TASK,
     
     /* struct filedesc */
     KSTRUCT_OFFSET_FILEDESC_FD_OFILES,
@@ -93,7 +94,12 @@ enum kstruct_offset {
     KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE_SIZE,
     KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE,
     
+    /* struct host */
+    KSTRUCT_OFFSET_HOST_SPECIAL,
+    
     KFREE_ADDR_OFFSET,
+    KSTRUCT_SIZE_IPC_ENTRY,
+    KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS,
 };
 
 int koffset(enum kstruct_offset offset);
@@ -101,6 +107,9 @@ void offsets_init(void);
 
 extern uint32_t create_outsize;
 
-
+extern size_t get_add_x0_x0_0x40_ret(void);
+extern size_t get_IOMalloc(void);
+extern size_t get_zone_map_ref(void);
+extern size_t get_IOFree(void);
 
 #endif

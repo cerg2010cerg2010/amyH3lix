@@ -11,4 +11,6 @@
 
 int jailbreak(void);
 
+int jailbreak_system(const char *command);
+
 #endif /* jailbreak_h */

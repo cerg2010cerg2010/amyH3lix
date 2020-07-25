@@ -79,15 +79,13 @@ double uptime(){
         uname(&name);
         if (strstr(name.version, "MarijuanARM")){
             postProgress(@"running uicache");
-            dsystem("rm /var/mobile/Library/Cydia/metadata.cb0");
-            int r = dsystem("/usr/bin/uicache");
+            int r = jailbreak_system("(bash -c \"rm /var/mobile/Library/Cydia/metadata.cb0;/usr/bin/uicache;killall backboardd\") &");
             if (r!=0) {
                 postProgress(@"uicache failed!");
             }else{
                 postProgress(@"uicache done!");
             }
 
-            dsystem("killall backboardd");
             dispatch_sync(dispatch_get_main_queue(), ^(void){
                 [self.gobtn setTitle:@"done uicache" forState:UIControlStateNormal];
             });

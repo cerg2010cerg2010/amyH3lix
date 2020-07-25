@@ -30,6 +30,9 @@
 		ACAAEE3C2494EE70006BF6AE /* iosurface.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE3B2494EE70006BF6AE /* iosurface.c */; };
 		ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */; };
 		ACAAEE4124950059006BF6AE /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE4024950059006BF6AE /* offsets.m */; };
+		ACC7DB5324CB7E1300FCA9B3 /* kutil.m in Sources */ = {isa = PBXBuildFile; fileRef = ACC7DB5224CB7E1300FCA9B3 /* kutil.m */; };
+		ACC7DB5724CBDB3000FCA9B3 /* patchfinder64.c in Sources */ = {isa = PBXBuildFile; fileRef = ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */; };
+		ACC7DB5924CC0CB800FCA9B3 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = ACC7DB5824CC0CB800FCA9B3 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -71,6 +74,11 @@
 		ACAAEE3D2494EE8B006BF6AE /* kernel_memory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_memory.h; sourceTree = "<group>"; };
 		ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kernel_memory.c; sourceTree = "<group>"; };
 		ACAAEE4024950059006BF6AE /* offsets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = offsets.m; sourceTree = "<group>"; };
+		ACC7DB5224CB7E1300FCA9B3 /* kutil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kutil.m; sourceTree = "<group>"; };
+		ACC7DB5424CB7E3100FCA9B3 /* kutil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kutil.h; sourceTree = "<group>"; };
+		ACC7DB5524CBDB3000FCA9B3 /* patchfinder64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = patchfinder64.h; sourceTree = "<group>"; };
+		ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = patchfinder64.c; sourceTree = "<group>"; };
+		ACC7DB5824CC0CB800FCA9B3 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +118,7 @@
 				875D130D203F4215007B798C /* launchctl */,
 				875D130C203F4214007B798C /* tar */,
 				AC5CB92C2495FC9A00FE7C74 /* icon.png */,
+				ACC7DB5824CC0CB800FCA9B3 /* README.md */,
 				87F9E9912039C51900C90C05 /* doubleH3lix */,
 				87F9E9902039C51900C90C05 /* Products */,
 				6848D102203CE93100A0FFE2 /* Frameworks */,
@@ -138,9 +147,13 @@
 				6848D0FB203CE91700A0FFE2 /* common.h */,
 				6848D0FC203CE91700A0FFE2 /* offsets.h */,
 				ACAAEE4024950059006BF6AE /* offsets.m */,
+				ACC7DB5224CB7E1300FCA9B3 /* kutil.m */,
+				ACC7DB5424CB7E3100FCA9B3 /* kutil.h */,
 				6848D0FD203CE91700A0FFE2 /* offsets.mm */,
 				ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */,
 				ACAAEE3D2494EE8B006BF6AE /* kernel_memory.h */,
+				ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */,
+				ACC7DB5524CBDB3000FCA9B3 /* patchfinder64.h */,
 				ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */,
 				ACAAEE2E2494ED82006BF6AE /* sock_port_exploit.h */,
 				ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */,
@@ -221,6 +234,7 @@
 				875D1310203F4215007B798C /* launchctl in Resources */,
 				872C2D6C203EE37600929D9E /* Main.storyboard in Resources */,
 				87EEF947203F188800663566 /* ui resources in Resources */,
+				ACC7DB5924CC0CB800FCA9B3 /* README.md in Resources */,
 				8786D4FB203E12F900962200 /* LaunchScreen.storyboard in Resources */,
 				87F9E99C2039C51900C90C05 /* Assets.xcassets in Resources */,
 			);
@@ -243,6 +257,8 @@
 				ACAAEE302494ED82006BF6AE /* sock_port_exploit.c in Sources */,
 				6848D100203CE91700A0FFE2 /* offsets.mm in Sources */,
 				ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */,
+				ACC7DB5724CBDB3000FCA9B3 /* patchfinder64.c in Sources */,
+				ACC7DB5324CB7E1300FCA9B3 /* kutil.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
