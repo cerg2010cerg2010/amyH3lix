@@ -8,16 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		6848D100203CE91700A0FFE2 /* offsets.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6848D0FD203CE91700A0FFE2 /* offsets.mm */; };
-		6848D104203CE93100A0FFE2 /* liboffsetfinder64.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6848D103203CE93100A0FFE2 /* liboffsetfinder64.a */; };
 		68805418203CEB060003A817 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 68805417203CEB060003A817 /* IOKit.framework */; };
-		87149C6D204872DB009658CA /* Cydia-10.tar in Resources */ = {isa = PBXBuildFile; fileRef = 87149C6C204872DB009658CA /* Cydia-10.tar */; };
 		872C2D6C203EE37600929D9E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 87F9E9982039C51900C90C05 /* Main.storyboard */; };
-		8757D0A2203CF5C500B3A566 /* libplist.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8757D0A0203CF5C500B3A566 /* libplist.a */; };
-		8757D0A3203CF5C500B3A566 /* libplist++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8757D0A1203CF5C500B3A566 /* libplist++.a */; };
-		875D130F203F4215007B798C /* tar in Resources */ = {isa = PBXBuildFile; fileRef = 875D130C203F4214007B798C /* tar */; };
-		875D1310203F4215007B798C /* launchctl in Resources */ = {isa = PBXBuildFile; fileRef = 875D130D203F4215007B798C /* launchctl */; };
 		8786D4FB203E12F900962200 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 87F9E99D2039C51900C90C05 /* LaunchScreen.storyboard */; };
-		87C4C2CA203DE1AD0047802A /* libimg4tool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 87C4C2C9203DE1AD0047802A /* libimg4tool.a */; };
 		87EEF947203F188800663566 /* ui resources in Resources */ = {isa = PBXBuildFile; fileRef = 87F9E9A92039C5AB00C90C05 /* ui resources */; };
 		87F9E9942039C51900C90C05 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 87F9E9932039C51900C90C05 /* AppDelegate.m */; };
 		87F9E9972039C51900C90C05 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 87F9E9962039C51900C90C05 /* ViewController.m */; };
@@ -33,23 +26,24 @@
 		ACC7DB5324CB7E1300FCA9B3 /* kutil.m in Sources */ = {isa = PBXBuildFile; fileRef = ACC7DB5224CB7E1300FCA9B3 /* kutil.m */; };
 		ACC7DB5724CBDB3000FCA9B3 /* patchfinder64.c in Sources */ = {isa = PBXBuildFile; fileRef = ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */; };
 		ACC7DB5924CC0CB800FCA9B3 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = ACC7DB5824CC0CB800FCA9B3 /* README.md */; };
+		ACD652B924DFC2FD00254EBB /* launchctl in Resources */ = {isa = PBXBuildFile; fileRef = ACD652B624DFC2FD00254EBB /* launchctl */; };
+		ACD652BA24DFC2FD00254EBB /* tar in Resources */ = {isa = PBXBuildFile; fileRef = ACD652B724DFC2FD00254EBB /* tar */; };
+		ACD652BB24DFC2FD00254EBB /* Cydia-10.tar in Resources */ = {isa = PBXBuildFile; fileRef = ACD652B824DFC2FD00254EBB /* Cydia-10.tar */; };
+		ACD652CA24DFC55800254EBB /* exception.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C324DFC55700254EBB /* exception.cpp */; };
+		ACD652CB24DFC55800254EBB /* liboffsetfinder64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C524DFC55800254EBB /* liboffsetfinder64.cpp */; };
+		ACD652CC24DFC55800254EBB /* patch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C624DFC55800254EBB /* patch.cpp */; };
+		ACD652CD24DFC55800254EBB /* insn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C724DFC55800254EBB /* insn.cpp */; };
+		ACD652E824DFCA9800254EBB /* libimg4tool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652E724DFCA9800254EBB /* libimg4tool.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		6848D0FB203CE91700A0FFE2 /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
 		6848D0FC203CE91700A0FFE2 /* offsets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = offsets.h; sourceTree = "<group>"; };
 		6848D0FD203CE91700A0FFE2 /* offsets.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = offsets.mm; sourceTree = "<group>"; };
-		6848D103203CE93100A0FFE2 /* liboffsetfinder64.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liboffsetfinder64.a; path = doubleH3lix/liboffsetfinder64.a; sourceTree = "<group>"; };
 		68805417203CEB060003A817 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = IOKit.framework; sourceTree = "<group>"; };
-		87149C6C204872DB009658CA /* Cydia-10.tar */ = {isa = PBXFileReference; lastKnownFileType = archive.tar; name = "Cydia-10.tar"; path = "doubleH3lix/jbresources/Cydia-10.tar"; sourceTree = "<group>"; };
 		8757D090203CF2CB00B3A566 /* libapple_crypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libapple_crypto.tbd; path = usr/lib/libapple_crypto.tbd; sourceTree = SDKROOT; };
 		8757D092203CF2DB00B3A566 /* libboringssl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libboringssl.tbd; path = usr/lib/libboringssl.tbd; sourceTree = SDKROOT; };
-		8757D0A0203CF5C500B3A566 /* libplist.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplist.a; path = doubleH3lix/libplist.a; sourceTree = "<group>"; };
-		8757D0A1203CF5C500B3A566 /* libplist++.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libplist++.a"; path = "doubleH3lix/libplist++.a"; sourceTree = "<group>"; };
-		875D130C203F4214007B798C /* tar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = tar; path = doubleH3lix/jbresources/tar; sourceTree = "<group>"; };
-		875D130D203F4215007B798C /* launchctl */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = launchctl; path = doubleH3lix/jbresources/launchctl; sourceTree = "<group>"; };
 		8787FA21203DEF250000BDA5 /* sbops.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sbops.h; sourceTree = "<group>"; };
-		87C4C2C9203DE1AD0047802A /* libimg4tool.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimg4tool.a; path = doubleH3lix/libimg4tool.a; sourceTree = "<group>"; };
 		87D07A64203EB74C00C7D96D /* pte_stuff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pte_stuff.h; sourceTree = "<group>"; };
 		87F9E98F2039C51900C90C05 /* sockH3lix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sockH3lix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87F9E9922039C51900C90C05 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -79,6 +73,38 @@
 		ACC7DB5524CBDB3000FCA9B3 /* patchfinder64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = patchfinder64.h; sourceTree = "<group>"; };
 		ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = patchfinder64.c; sourceTree = "<group>"; };
 		ACC7DB5824CC0CB800FCA9B3 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		ACD652B624DFC2FD00254EBB /* launchctl */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = launchctl; path = sockH3lix/jbresources/launchctl; sourceTree = "<group>"; };
+		ACD652B724DFC2FD00254EBB /* tar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = tar; path = sockH3lix/jbresources/tar; sourceTree = "<group>"; };
+		ACD652B824DFC2FD00254EBB /* Cydia-10.tar */ = {isa = PBXFileReference; lastKnownFileType = archive.tar; name = "Cydia-10.tar"; path = "sockH3lix/jbresources/Cydia-10.tar"; sourceTree = "<group>"; };
+		ACD652C024DFC55700254EBB /* liboffsetfinder64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = liboffsetfinder64.hpp; sourceTree = "<group>"; };
+		ACD652C124DFC55700254EBB /* all_liboffsetfinder.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = all_liboffsetfinder.hpp; sourceTree = "<group>"; };
+		ACD652C224DFC55700254EBB /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = common.h; sourceTree = "<group>"; };
+		ACD652C324DFC55700254EBB /* exception.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = exception.cpp; sourceTree = "<group>"; };
+		ACD652C424DFC55700254EBB /* insn.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = insn.hpp; sourceTree = "<group>"; };
+		ACD652C524DFC55800254EBB /* liboffsetfinder64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liboffsetfinder64.cpp; sourceTree = "<group>"; };
+		ACD652C624DFC55800254EBB /* patch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = patch.cpp; sourceTree = "<group>"; };
+		ACD652C724DFC55800254EBB /* insn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = insn.cpp; sourceTree = "<group>"; };
+		ACD652C824DFC55800254EBB /* patch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = patch.hpp; sourceTree = "<group>"; };
+		ACD652C924DFC55800254EBB /* exception.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = exception.hpp; sourceTree = "<group>"; };
+		ACD652CE24DFC56100254EBB /* all_img4tool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = all_img4tool.h; sourceTree = "<group>"; };
+		ACD652CF24DFC56100254EBB /* img4tool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = img4tool.h; sourceTree = "<group>"; };
+		ACD652D224DFC56200254EBB /* lzssdec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lzssdec.h; sourceTree = "<group>"; };
+		ACD652D324DFC56200254EBB /* img4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = img4.h; sourceTree = "<group>"; };
+		ACD652D924DFC69C00254EBB /* plist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plist.h; sourceTree = "<group>"; };
+		ACD652DA24DFC69C00254EBB /* plist++.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "plist++.h"; sourceTree = "<group>"; };
+		ACD652DB24DFC69C00254EBB /* String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = String.h; sourceTree = "<group>"; };
+		ACD652DC24DFC69C00254EBB /* Array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Array.h; sourceTree = "<group>"; };
+		ACD652DD24DFC69C00254EBB /* Structure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structure.h; sourceTree = "<group>"; };
+		ACD652DE24DFC69C00254EBB /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Node.h; sourceTree = "<group>"; };
+		ACD652DF24DFC69C00254EBB /* Real.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Real.h; sourceTree = "<group>"; };
+		ACD652E024DFC69C00254EBB /* Boolean.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Boolean.h; sourceTree = "<group>"; };
+		ACD652E124DFC69C00254EBB /* Dictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Dictionary.h; sourceTree = "<group>"; };
+		ACD652E224DFC69C00254EBB /* Integer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Integer.h; sourceTree = "<group>"; };
+		ACD652E324DFC69C00254EBB /* Data.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
+		ACD652E424DFC69C00254EBB /* Date.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Date.h; sourceTree = "<group>"; };
+		ACD652E524DFC69C00254EBB /* Key.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Key.h; sourceTree = "<group>"; };
+		ACD652E624DFC69C00254EBB /* Uid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uid.h; sourceTree = "<group>"; };
+		ACD652E724DFCA9800254EBB /* libimg4tool.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimg4tool.a; path = sockH3lix/libs/libimg4tool.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,11 +112,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				87C4C2CA203DE1AD0047802A /* libimg4tool.a in Frameworks */,
-				8757D0A2203CF5C500B3A566 /* libplist.a in Frameworks */,
-				8757D0A3203CF5C500B3A566 /* libplist++.a in Frameworks */,
+				ACD652E824DFCA9800254EBB /* libimg4tool.a in Frameworks */,
 				68805418203CEB060003A817 /* IOKit.framework in Frameworks */,
-				6848D104203CE93100A0FFE2 /* liboffsetfinder64.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,13 +123,10 @@
 		6848D102203CE93100A0FFE2 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				87C4C2C9203DE1AD0047802A /* libimg4tool.a */,
-				8757D0A0203CF5C500B3A566 /* libplist.a */,
-				8757D0A1203CF5C500B3A566 /* libplist++.a */,
+				ACD652E724DFCA9800254EBB /* libimg4tool.a */,
 				8757D092203CF2DB00B3A566 /* libboringssl.tbd */,
 				8757D090203CF2CB00B3A566 /* libapple_crypto.tbd */,
 				68805417203CEB060003A817 /* IOKit.framework */,
-				6848D103203CE93100A0FFE2 /* liboffsetfinder64.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -114,12 +134,15 @@
 		87F9E9862039C51900C90C05 = {
 			isa = PBXGroup;
 			children = (
-				87149C6C204872DB009658CA /* Cydia-10.tar */,
-				875D130D203F4215007B798C /* launchctl */,
-				875D130C203F4214007B798C /* tar */,
+				ACD652B824DFC2FD00254EBB /* Cydia-10.tar */,
+				ACD652B624DFC2FD00254EBB /* launchctl */,
+				ACD652B724DFC2FD00254EBB /* tar */,
 				AC5CB92C2495FC9A00FE7C74 /* icon.png */,
 				ACC7DB5824CC0CB800FCA9B3 /* README.md */,
-				87F9E9912039C51900C90C05 /* doubleH3lix */,
+				ACD652D824DFC66A00254EBB /* plist */,
+				ACD652BF24DFC4EE00254EBB /* img4tool */,
+				ACD652BE24DFC48700254EBB /* liboffsetfinder64 */,
+				87F9E9912039C51900C90C05 /* sockH3lix */,
 				87F9E9902039C51900C90C05 /* Products */,
 				6848D102203CE93100A0FFE2 /* Frameworks */,
 			);
@@ -133,7 +156,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		87F9E9912039C51900C90C05 /* doubleH3lix */ = {
+		87F9E9912039C51900C90C05 /* sockH3lix */ = {
 			isa = PBXGroup;
 			children = (
 				87F9E9922039C51900C90C05 /* AppDelegate.h */,
@@ -167,7 +190,56 @@
 				87F9E9A92039C5AB00C90C05 /* ui resources */,
 				87F9E9A12039C51900C90C05 /* main.m */,
 			);
-			path = doubleH3lix;
+			path = sockH3lix;
+			sourceTree = "<group>";
+		};
+		ACD652BE24DFC48700254EBB /* liboffsetfinder64 */ = {
+			isa = PBXGroup;
+			children = (
+				ACD652C124DFC55700254EBB /* all_liboffsetfinder.hpp */,
+				ACD652C224DFC55700254EBB /* common.h */,
+				ACD652C324DFC55700254EBB /* exception.cpp */,
+				ACD652C924DFC55800254EBB /* exception.hpp */,
+				ACD652C724DFC55800254EBB /* insn.cpp */,
+				ACD652C424DFC55700254EBB /* insn.hpp */,
+				ACD652C524DFC55800254EBB /* liboffsetfinder64.cpp */,
+				ACD652C024DFC55700254EBB /* liboffsetfinder64.hpp */,
+				ACD652C624DFC55800254EBB /* patch.cpp */,
+				ACD652C824DFC55800254EBB /* patch.hpp */,
+			);
+			path = liboffsetfinder64;
+			sourceTree = "<group>";
+		};
+		ACD652BF24DFC4EE00254EBB /* img4tool */ = {
+			isa = PBXGroup;
+			children = (
+				ACD652CE24DFC56100254EBB /* all_img4tool.h */,
+				ACD652D324DFC56200254EBB /* img4.h */,
+				ACD652CF24DFC56100254EBB /* img4tool.h */,
+				ACD652D224DFC56200254EBB /* lzssdec.h */,
+			);
+			path = img4tool;
+			sourceTree = "<group>";
+		};
+		ACD652D824DFC66A00254EBB /* plist */ = {
+			isa = PBXGroup;
+			children = (
+				ACD652DC24DFC69C00254EBB /* Array.h */,
+				ACD652E024DFC69C00254EBB /* Boolean.h */,
+				ACD652E324DFC69C00254EBB /* Data.h */,
+				ACD652E424DFC69C00254EBB /* Date.h */,
+				ACD652E124DFC69C00254EBB /* Dictionary.h */,
+				ACD652E224DFC69C00254EBB /* Integer.h */,
+				ACD652E524DFC69C00254EBB /* Key.h */,
+				ACD652DE24DFC69C00254EBB /* Node.h */,
+				ACD652D924DFC69C00254EBB /* plist.h */,
+				ACD652DA24DFC69C00254EBB /* plist++.h */,
+				ACD652DF24DFC69C00254EBB /* Real.h */,
+				ACD652DB24DFC69C00254EBB /* String.h */,
+				ACD652DD24DFC69C00254EBB /* Structure.h */,
+				ACD652E624DFC69C00254EBB /* Uid.h */,
+			);
+			path = plist;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -228,10 +300,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				875D130F203F4215007B798C /* tar in Resources */,
-				87149C6D204872DB009658CA /* Cydia-10.tar in Resources */,
+				ACD652BB24DFC2FD00254EBB /* Cydia-10.tar in Resources */,
+				ACD652B924DFC2FD00254EBB /* launchctl in Resources */,
 				AC5CB92D2495FC9A00FE7C74 /* icon.png in Resources */,
-				875D1310203F4215007B798C /* launchctl in Resources */,
+				ACD652BA24DFC2FD00254EBB /* tar in Resources */,
 				872C2D6C203EE37600929D9E /* Main.storyboard in Resources */,
 				87EEF947203F188800663566 /* ui resources in Resources */,
 				ACC7DB5924CC0CB800FCA9B3 /* README.md in Resources */,
@@ -247,6 +319,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACD652CB24DFC55800254EBB /* liboffsetfinder64.cpp in Sources */,
+				ACD652CD24DFC55800254EBB /* insn.cpp in Sources */,
 				ACAAEE4124950059006BF6AE /* offsets.m in Sources */,
 				ACAAEE332494EDA7006BF6AE /* exploit_utilities.c in Sources */,
 				87F9E9972039C51900C90C05 /* ViewController.m in Sources */,
@@ -256,9 +330,11 @@
 				ACAAEE3C2494EE70006BF6AE /* iosurface.c in Sources */,
 				ACAAEE302494ED82006BF6AE /* sock_port_exploit.c in Sources */,
 				6848D100203CE91700A0FFE2 /* offsets.mm in Sources */,
+				ACD652CA24DFC55800254EBB /* exception.cpp in Sources */,
 				ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */,
 				ACC7DB5724CBDB3000FCA9B3 /* patchfinder64.c in Sources */,
 				ACC7DB5324CB7E1300FCA9B3 /* kutil.m in Sources */,
+				ACD652CC24DFC55800254EBB /* patch.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,6 +413,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = "-DIMG4TOOL_NOMAIN";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -387,6 +464,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = "-DIMG4TOOL_NOMAIN";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -403,13 +481,13 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/external/liboffsetfinder64/include";
-				INFOPLIST_FILE = doubleH3lix/Info.plist;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)";
+				INFOPLIST_FILE = sockH3lix/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/doubleH3lix/libs",
+					"$(PROJECT_DIR)/sockH3lix/libs",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sxx.sockH3lix;
 				PRODUCT_NAME = sockH3lix;
@@ -429,13 +507,13 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/external/liboffsetfinder64/include";
-				INFOPLIST_FILE = doubleH3lix/Info.plist;
+				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)";
+				INFOPLIST_FILE = sockH3lix/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/doubleH3lix/libs",
+					"$(PROJECT_DIR)/sockH3lix/libs",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sxx.sockH3lix;
 				PRODUCT_NAME = sockH3lix;

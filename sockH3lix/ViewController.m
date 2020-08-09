@@ -79,7 +79,8 @@ double uptime(){
         uname(&name);
         if (strstr(name.version, "MarijuanARM")){
             postProgress(@"running uicache");
-            int r = jailbreak_system("(bash -c \"rm /var/mobile/Library/Cydia/metadata.cb0;/usr/bin/uicache;killall backboardd\") &");
+            //int r = jailbreak_system("(bash -c \"rm /var/mobile/Library/Cydia/metadata.cb0;/usr/bin/uicache;killall backboardd\") &");
+            int r = jailbreak_system("(bash -c \"/usr/bin/uicache;killall backboardd\") &");
             if (r!=0) {
                 postProgress(@"uicache failed!");
             }else{
@@ -90,12 +91,6 @@ double uptime(){
                 [self.gobtn setTitle:@"done uicache" forState:UIControlStateNormal];
             });
         }else{
-            int ut = 0;
-            while ((ut = 50 - uptime()) > 0) {
-                NSString *msg = [NSString stringWithFormat:@"Waiting %d seconds\nfor system to cool\ndown after boot",ut];
-                postProgress(msg);
-                sleep(1);
-            }
 
             postProgress(@"running exploit");
             usleep(USEC_PER_SEC/100);

