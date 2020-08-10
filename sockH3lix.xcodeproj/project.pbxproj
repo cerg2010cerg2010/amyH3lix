@@ -34,6 +34,8 @@
 		ACD652CC24DFC55800254EBB /* patch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C624DFC55800254EBB /* patch.cpp */; };
 		ACD652CD24DFC55800254EBB /* insn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C724DFC55800254EBB /* insn.cpp */; };
 		ACD652E824DFCA9800254EBB /* libimg4tool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652E724DFCA9800254EBB /* libimg4tool.a */; };
+		ACD652EB24E067A400254EBB /* libplist.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652E924E067A300254EBB /* libplist.a */; };
+		ACD652EC24E067A400254EBB /* libplist++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652EA24E067A400254EBB /* libplist++.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -105,6 +107,8 @@
 		ACD652E524DFC69C00254EBB /* Key.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Key.h; sourceTree = "<group>"; };
 		ACD652E624DFC69C00254EBB /* Uid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uid.h; sourceTree = "<group>"; };
 		ACD652E724DFCA9800254EBB /* libimg4tool.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimg4tool.a; path = sockH3lix/libs/libimg4tool.a; sourceTree = "<group>"; };
+		ACD652E924E067A300254EBB /* libplist.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplist.a; path = sockH3lix/libs/libplist.a; sourceTree = "<group>"; };
+		ACD652EA24E067A400254EBB /* libplist++.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libplist++.a"; path = "sockH3lix/libs/libplist++.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,8 +116,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ACD652EC24E067A400254EBB /* libplist++.a in Frameworks */,
 				ACD652E824DFCA9800254EBB /* libimg4tool.a in Frameworks */,
 				68805418203CEB060003A817 /* IOKit.framework in Frameworks */,
+				ACD652EB24E067A400254EBB /* libplist.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -124,6 +130,8 @@
 			isa = PBXGroup;
 			children = (
 				ACD652E724DFCA9800254EBB /* libimg4tool.a */,
+				ACD652E924E067A300254EBB /* libplist.a */,
+				ACD652EA24E067A400254EBB /* libplist++.a */,
 				8757D092203CF2DB00B3A566 /* libboringssl.tbd */,
 				8757D090203CF2CB00B3A566 /* libapple_crypto.tbd */,
 				68805417203CEB060003A817 /* IOKit.framework */,

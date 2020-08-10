@@ -138,7 +138,7 @@ __attribute__((always_inline)) static int highestSetBit(uint64_t x){
     return -1;
 }
 
-__attribute__((always_inline)) static int lowestSetBit(uint64_t x){
+__attribute__((always_inline, unused)) static int lowestSetBit(uint64_t x){
     for (int i=0; i<=63; i++) {
         if (x & (1<<i))
             return i;
@@ -173,7 +173,7 @@ __attribute__((always_inline)) static uint64_t ROR(uint64_t x, int shift, int le
 }
 
 __attribute__((always_inline)) static std::pair<int64_t, int64_t> DecodeBitMasks(uint64_t immN, uint8_t imms, uint8_t immr, bool immediate){
-    int64_t tmask = 0, wmask = 0;
+    int64_t wmask = 0;
     int8_t levels = 0;
 
     int len = highestSetBit( (uint64_t)((immN<<6) | ((~imms) & 0b111111)) );

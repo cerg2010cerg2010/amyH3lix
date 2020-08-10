@@ -9,20 +9,10 @@
 #ifndef all_liboffsetfinder_h
 #define all_liboffsetfinder_h
 
-#ifdef DEBUG
-#define OFFSETFINDER64_VERSION_COMMIT_COUNT "Debug"
-#define OFFSETFINDER64_VERSION_COMMIT_SHA "Build: " __DATE__ " " __TIME__
-
-#include <stdint.h>
-static uint64_t BIT_RANGE(uint64_t v, int begin, int end) { return ((v)>>(begin)) % (1 << ((end)-(begin)+1)); }
-static uint64_t BIT_AT(uint64_t v, int pos){ return (v >> pos) % 2; }
-
-#else
 #define OFFSETFINDER64_VERSION_COMMIT_COUNT "Release"
 #define OFFSETFINDER64_VERSION_COMMIT_SHA "Build: " __DATE__ " " __TIME__
 #define BIT_RANGE(v,begin,end) ( ((v)>>(begin)) % (1 << ((end)-(begin)+1)) )
 #define BIT_AT(v,pos) ( (v >> pos) % 2 )
-#endif
 
 #define info(a ...) ({printf(a),printf("\n");})
 #define log(a ...) ({if (dbglog) printf(a),printf("\n");})

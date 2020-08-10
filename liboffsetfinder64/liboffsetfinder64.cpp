@@ -157,6 +157,7 @@ offsetfinder64::offsetfinder64(const char* filename) : _freeKernel(true),__symta
     _nonceEnabler_patch = _find_nonceEnabler_patch();
     _sbops = _find_sbops();
     _release_arm = _find_release_arm();
+    _bcopy = _find_bcopy();
 }
 
 void offsetfinder64::loadSegments(){
@@ -385,7 +386,7 @@ loc_t offsetfinder64::find_bzero(){
     return find_sym("___bzero");
 }
 
-loc_t offsetfinder64::find_bcopy(){
+loc_t offsetfinder64::_find_bcopy(){
     return find_sym("_bcopy");
 }
 

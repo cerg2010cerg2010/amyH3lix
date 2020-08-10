@@ -56,6 +56,7 @@ namespace tihmstar {
             patchfinder64::patch _nonceEnabler_patch;
             patchfinder64::loc_t _sbops;
             loc_t _release_arm;
+            patchfinder64::loc_t _bcopy;
         };
         
         struct symtab_command *__symtab;
@@ -82,7 +83,7 @@ namespace tihmstar {
         patchfinder64::loc_t find_kernel_task();
         patchfinder64::loc_t find_realhost();
         patchfinder64::loc_t find_bzero();
-        patchfinder64::loc_t find_bcopy();
+        patchfinder64::loc_t _find_bcopy();
         patchfinder64::loc_t find_copyout();
         patchfinder64::loc_t find_copyin();
         patchfinder64::loc_t find_ipc_port_alloc_special();
@@ -129,56 +130,10 @@ namespace tihmstar {
         patchfinder64::loc_t _find_cpacr_write();
         patchfinder64::loc_t _find_idlesleep_str_loc();
         patchfinder64::loc_t _find_deepsleep_str_loc();
-        /*
-        inline patchfinder64::loc_t find_gPhysBase() {
-            return _find_gPhysBase();
-        }
-        inline patchfinder64::loc_t find_kernel_pmap() {
-            return _find_kernel_pmap();
-        }
-        inline patchfinder64::loc_t find_cpacr_write() {
-            return _find_cpacr_write();
-        }
-        inline patchfinder64::loc_t find_idlesleep_str_loc() {
-            return _find_idlesleep_str_loc();
-        }
-        inline patchfinder64::loc_t find_deepsleep_str_loc() {
-            return _find_deepsleep_str_loc();
-        }
-        inline patchfinder64::patch find_i_can_has_debugger_patch_off() {
-            return _find_i_can_has_debugger_patch_off();
-        }
-        inline patchfinder64::patch find_lwvm_patch_offsets() {
-            return _find_lwvm_patch_offsets();
-        }
-        inline patchfinder64::patch find_remount_patch_offset() {
-            return _find_remount_patch_offset();
-        }
-        inline std::vector<patchfinder64::patch> find_nosuid_off() {
-            return _find_nosuid_off();
-        }
-        inline patchfinder64::patch find_proc_enforce() {
-            return _find_proc_enforce();
-        }
-        inline patchfinder64::patch find_amfi_patch_offsets() {
-            return _find_amfi_substrate_patch();
-        }
-        inline patchfinder64::patch find_cs_enforcement_disable_amfi() {
-            return _find_cs_enforcement_disable_amfi();
-        }
-        inline patchfinder64::patch find_amfi_substrate_patch() {
-            return _find_amfi_substrate_patch();
-        }
-        inline patchfinder64::loc_t find_sbops() {
-            return _find_sbops();
-        }
-        inline patchfinder64::patch find_nonceEnabler_patch() {
-            return _find_nonceEnabler_patch();
-        }
-        inline patchfinder64::loc_t find_release_arm() {
-            return _find_release_arm();
-        }*/
         
+        inline patchfinder64::loc_t find_bcopy() {
+            return _bcopy;
+        }
         inline patchfinder64::loc_t find_gPhysBase() {
             return _gPhysBase;
         }
