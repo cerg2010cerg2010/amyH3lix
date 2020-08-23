@@ -102,6 +102,26 @@ enum kstruct_offset {
     KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS,
 };
 
+struct cpu_cache_data {
+    uint32_t mmu_i_cline;
+    uint32_t mmu_csize;
+    uint32_t mmu_cline;
+    uint32_t mmu_nway;
+    uint32_t mmu_i7set;
+    uint32_t mmu_i7way;
+    uint32_t mmu_i9way;
+    uint32_t mmu_sway;
+    uint32_t mmu_nset;
+    uint32_t l2_csize;
+    uint32_t l2_cline;
+    uint32_t l2_nway;
+    uint32_t l2_i7set;
+    uint32_t l2_i7way;
+    uint32_t l2_i9way;
+    uint32_t l2_sway;
+    uint32_t l2_nset;
+};
+
 int koffset(enum kstruct_offset offset);
 void offsets_init(void);
 
@@ -111,5 +131,6 @@ extern size_t get_add_x0_x0_0x40_ret(void);
 extern size_t get_IOMalloc(void);
 extern size_t get_zone_map_ref(void);
 extern size_t get_IOFree(void);
+extern struct cpu_cache_data get_cache_data(void);
 
 #endif

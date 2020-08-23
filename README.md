@@ -1,6 +1,7 @@
 # sockH3lix
 
 Jailbreak for iOS 10.x 64bit devices without KTRR
+This should be the best variant of H3lix jailbreak tool.
 
 **Replace the exploit from v0rtex to [sock port](https://github.com/jakeajames/sock_port) with higher success rate and shorter time.**
 
@@ -19,3 +20,9 @@ This jailbreak tool is compatible with doubleH3lix, which means you can switch b
   - sockH3lix will call uicache with sock port exploit for sandbox escaping. Closed-source H3lix without such sandbox path cannot use uicache.
 - export tfp0
   - Enable hgsp4 for root process.
+- Reduce jailbreak costs, improve jailbreak speed and stability
+  - Merge kernel read/write request to reduce syscall count.
+  - Add a kernel memory management for remapping pages and page table entries to reduce kernel memory usage after jailbreak.
+  - Choose a right size of the fake IOTrap while initializing kexec.
+  - Use a large number of Mach primitives and other syscalls that affect scheduling to increase stability.
+  - kexec some hardware codes to flush the cache and TLB instead of waiting for the kpp patch to work.

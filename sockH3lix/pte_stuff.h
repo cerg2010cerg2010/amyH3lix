@@ -171,7 +171,7 @@ uint64_t findphys_real(uint64_t virtaddr) {
     __block uint64_t physvar = 0;
     pagestuff_64(virtaddr, ^(vm_address_t tte_addr, int addr) {
         uint64_t tte = ReadAnywhere64(tte_addr);
-        if (addr == 3) {\
+        if (addr == 3) {
             physvar = TTE_GET(tte, TTE_PHYS_VALUE_MASK);
         }
     }, level1_table, isvad ? 1 : 2);

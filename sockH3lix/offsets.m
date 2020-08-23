@@ -6,7 +6,7 @@
 #import <string.h>
 #import <sys/sysctl.h>
 #import <sys/utsname.h>
-
+#include <mach/machine.h>
 #import "offsets.h"
 
 #define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
@@ -260,4 +260,69 @@ extern size_t get_IOFree(void) {
     if (addr == 0)
         addr = find_IOFree();
     return addr;
+}
+
+extern struct cpu_cache_data get_cache_data(void) {
+    static struct cpu_cache_data data;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        uint64_t family = 0;
+        size_t size = sizeof(family);
+        sysctlbyname("hw.cpufamily", &family, &size, NULL, 0);
+        size_t l2size = 0;
+        size = sizeof(l2size);
+        sysctlbyname("hw.l2cachesize", &l2size, &size, NULL, 0);
+        data.l2_csize = flsl(l2size) != ffsl(l2size) ? flsl(l2size) : flsl(l2size) - 1;
+        //printf("l2 csize: %d\n", data.l2_csize);
+        switch (family) {
+            case CPUFAMILY_ARM_CYCLONE: //A7
+            case CPUFAMILY_ARM_TYPHOON: //A8
+                data.mmu_i_cline = 6;
+                data.mmu_csize = 16;
+                data.mmu_cline = 6;
+                data.mmu_nway = 1;
+                data.mmu_i7set = 6;
+                data.mmu_i7way = 31;
+                data.mmu_i9way = 31;
+                data.mmu_sway = (data.mmu_csize - data.mmu_nway); //15
+                data.mmu_nset = (data.mmu_sway - data.mmu_cline); //9
+                //data.l2_csize = __ARM_L2CACHE_SIZE_LOG__;
+                data.l2_cline = 6;
+                data.l2_nway = 3;
+                data.l2_i7set = 6;
+                data.l2_i7way = 29;
+                data.l2_i9way = 29;
+                data.l2_sway = (data.l2_csize - data.l2_nway); 
+                data.l2_nset = (data.l2_sway - data.l2_cline);
+                break;
+            case CPUFAMILY_ARM_TWISTER: //A9
+            case CPUFAMILY_ARM_HURRICANE: //A10
+                data.mmu_i_cline = 6;
+                data.mmu_csize = 16;
+                data.mmu_cline = 6;
+                data.mmu_nway = 2;
+                data.mmu_i7set = 6;
+                data.mmu_i7way = 30;
+                data.mmu_i9way = 30;
+                data.mmu_sway = (data.mmu_csize - data.mmu_nway);
+                data.mmu_nset = (data.mmu_sway - data.mmu_cline);
+                //data.l2_csize = __ARM_L2CACHE_SIZE_LOG__;
+                data.l2_cline = 6;
+                data.l2_nway = 4;
+                data.l2_i7set = 6;
+                data.l2_i7way = 28;
+                data.l2_i9way = 28;
+                data.l2_sway = (data.l2_csize - data.l2_nway);
+                data.l2_nset = (data.l2_sway - data.l2_cline);
+                break;
+            default:
+                break;
+        }
+    });
+    return data;
+}
+
+__attribute__((constructor)) static void
+_fetch_cache_data() {
+    get_cache_data();
 }
