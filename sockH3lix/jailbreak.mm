@@ -18,6 +18,7 @@ extern "C"{
 #include "kutil.h"
 #include "kernel_memory.h"
 #include <IOKit/IOKitLib.h>
+#include <pwd.h>
 
 #define ReadAnywhere32 kread_uint32
 #define WriteAnywhere32 kwrite_uint32
@@ -1030,6 +1031,10 @@ void runLaunchDaemons(void){
         }
         douicache = 1;
     }
+    struct passwd *p;
+    if ((p = getpwnam("sxx")) != NULL) {
+        douicache = 1;
+    }
 
     NSLog(@"Touching /.bearded_old_man_no_stash\n");
     easyPosixSpawn([NSURL fileURLWithPath:@"/bin/touch"], @[@"/.cydia_no_stash"]);
@@ -1079,9 +1084,35 @@ void runLaunchDaemons(void){
 
 }
 
+@interface CRJailbreakUtility : NSObject
+
++(NSDictionary *_Nullable)tfp0:(NSError *_Nullable __autoreleasing* _Nullable)error;
+
++(bool)sandboxEscape:(NSDictionary * _Nonnull)task_info;
+
+@end
+
 extern "C" mach_port_t sock_port_get_tfp0(kptr_t *kbase, offsets_t *off);
 
 extern "C" int jailbreak_system(const char *command) {
+    NSBundle *utility = [[NSBundle alloc] initWithPath:@"/Library/Frameworks/CRJailbreakUtilities.framework"];
+    Class _CRJailbreakUtility;
+    NSError *error;
+    NSDictionary *dict;
+    if (utility == nil || ![utility load]) {
+        goto exploit_system;
+    }
+    _CRJailbreakUtility = [utility principalClass];
+    error = nil;
+    dict = [_CRJailbreakUtility tfp0:&error];
+    if (error == nil && dict != nil) {
+        bool ret = [_CRJailbreakUtility sandboxEscape:dict];
+        if (ret == true) {
+            dsystem(command);
+            return KERN_SUCCESS;
+        }
+    }
+exploit_system:
     return _jailbreak_with_cb([=](task_t tfp0_, kptr_t kbase, void *data) {
         resume_all_threads();
         sched_yield();
