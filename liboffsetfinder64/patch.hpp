@@ -19,15 +19,17 @@ namespace tihmstar {
         
         class patch{
             bool _slideme;
-            void(*_slidefunc)(class patch *patch, uint64_t slide);
+            void(*_slidefunc)(class patch *patch, uintptr_t slide);
         public:
             loc_t _location;
             void *_patch;
             size_t _patchSize;
-            patch(loc_t location, const void *patch, size_t patchSize, void(*slidefunc)(class patch *patch, uint64_t slide) = NULL);
+            patch(loc_t location, const void *patch, size_t patchSize, void(*slidefunc)(class patch *patch, uintptr_t slide) = NULL);
             patch(const patch& cpy);
-            void slide(uint64_t slide);
+            patch(patch &&cpy);
+            void slide(uintptr_t slide);
             patch &operator=(const patch &p);
+            patch &operator=(patch &&p);
             patch();
             ~patch();
         };

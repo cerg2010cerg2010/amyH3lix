@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#if __arm64__
+
 extern bool auth_ptrs;
 extern bool monolithic_kernel;
 
@@ -133,5 +135,7 @@ uint64_t find_IOMalloc(void);
 uint64_t find_IOFree(void);
 
 uint64_t find_symbol(const char *symbol);
+
+#endif
 
 #endif

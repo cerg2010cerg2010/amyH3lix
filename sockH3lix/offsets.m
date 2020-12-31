@@ -17,6 +17,8 @@
 
 int* offsets = NULL;
 
+#if __arm64__
+
 int kstruct_offsets_10_x[] = {
     0xb,   // KSTRUCT_OFFSET_TASK_LCK_MTX_TYPE,
     0x10,  // KSTRUCT_OFFSET_TASK_REF_COUNT,
@@ -197,10 +199,60 @@ int kstruct_offsets_12_0[] = {
     0x8, // KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS
 };
 
+#else
+
+static int kstruct_offsets_10_x[] = {
+    0x7,   // KSTRUCT_OFFSET_TASK_LCK_MTX_TYPE,
+    0x8,  // KSTRUCT_OFFSET_TASK_REF_COUNT,
+    0xc,  // KSTRUCT_OFFSET_TASK_ACTIVE,
+    0x14,  // KSTRUCT_OFFSET_TASK_VM_MAP,
+    0x18,  // KSTRUCT_OFFSET_TASK_NEXT,
+    0x1c,  // KSTRUCT_OFFSET_TASK_PREV,
+    0x9c,  // KSTRUCT_OFFSET_TASK_ITK_SELF, //task_get_special_port
+    0x1e8, // KSTRUCT_OFFSET_TASK_ITK_SPACE, needed //port_name_to_thread
+    0x22c, // KSTRUCT_OFFSET_TASK_BSD_INFO, needed //get_bsdtask_info
+    
+    0x0,  // KSTRUCT_OFFSET_IPC_PORT_IO_BITS,
+    0x4,  // KSTRUCT_OFFSET_IPC_PORT_IO_REFERENCES,
+    0x30,  // KSTRUCT_OFFSET_IPC_PORT_IKMQ_BASE,
+    0x3c,  // KSTRUCT_OFFSET_IPC_PORT_MSG_COUNT,
+    0x44,  // KSTRUCT_OFFSET_IPC_PORT_IP_RECEIVER,
+    0x48, // KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT, needed
+    0x58,  // KSTRUCT_OFFSET_IPC_PORT_IP_PREMSG,
+    0x5c,  // KSTRUCT_OFFSET_IPC_PORT_IP_CONTEXT,
+    0x6c,  // KSTRUCT_OFFSET_IPC_PORT_IP_SRIGHTS, //ipc_port_release_send
+    
+    0x8,  // KSTRUCT_OFFSET_PROC_PID, needed
+    0x9c, // KSTRUCT_OFFSET_PROC_P_FD, //proc_chrooted
+    0xc, // KSTRUCT_OFFSET_PROC_TASK needed
+    
+    0x0,   // KSTRUCT_OFFSET_FILEDESC_FD_OFILES
+    
+    0x8,   // KSTRUCT_OFFSET_FILEPROC_F_FGLOB
+    
+    0x28,  // KSTRUCT_OFFSET_FILEGLOB_FG_DATA //mac_file_setxattr
+    
+    0x10,  // KSTRUCT_OFFSET_SOCKET_SO_PCB
+    
+    0x10,  // KSTRUCT_OFFSET_PIPE_BUFFER
+    
+    0xc,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE_SIZE
+    0x14,  // KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE needed
+    
+    0x8, // KSTRUCT_OFFSET_HOST_SPECIAL
+    
+    0x0,  // KFREE_ADDR_OFFSET,
+    0x10, // KSTRUCT_SIZE_IPC_ENTRY needed
+    0x4, // KSTRUCT_OFFSET_IPC_ENTRY_IE_BITS
+};
+
+#endif
+
 int koffset(enum kstruct_offset offset) {
     if (offsets == NULL) {
         printf("need to call offsets_init() prior to querying offsets\n");
-        return 0;
+        offsets_init();
+        return offsets[offset];
     }
     return offsets[offset];
 }
@@ -208,6 +260,7 @@ int koffset(enum kstruct_offset offset) {
 uint32_t create_outsize;
 
 void offsets_init() {
+#if __arm64__
     if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"12.0")) {
         printf("[i] offsets selected for iOS 12.0 or above\n");
         offsets = kstruct_offsets_12_0;
@@ -230,7 +283,9 @@ void offsets_init() {
         printf("[i] offsets selected for iOS 11.0 to 11.0.3\n");
         offsets = kstruct_offsets_11_0;
         create_outsize = 0x6c8;
-    } else if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"10.0")) {
+    } else
+#endif
+        if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"10.0")) {
         printf("[i] offsets selected for iOS 10.x\n");
         offsets = kstruct_offsets_10_x;
         create_outsize = 0x3c8;
@@ -238,28 +293,6 @@ void offsets_init() {
         printf("[-] iOS version too low, 10.0 required\n");
         exit(EXIT_FAILURE);
     }
-}
-
-#include "patchfinder64.h"
-
-extern size_t get_add_x0_x0_0x40_ret(void) {
-    static kptr_t addr = 0;
-    if (addr == 0)
-        addr = find_add_x0_x0_0x40_ret();
-    return addr;
-}
-extern size_t get_IOMalloc(void) {
-    static kptr_t addr = 0;
-    if (addr == 0)
-        addr = find_IOMalloc();
-    return addr;
-}
-
-extern size_t get_IOFree(void) {
-    static kptr_t addr = 0;
-    if (addr == 0)
-        addr = find_IOFree();
-    return addr;
 }
 
 extern struct cpu_cache_data get_cache_data(void) {

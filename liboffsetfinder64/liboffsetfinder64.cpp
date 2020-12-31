@@ -6,19 +6,19 @@
 //  Copyright © 2018 tihmstar. All rights reserved.
 //
 
+#if __arm64__
+
 #include "liboffsetfinder64/liboffsetfinder64.hpp"
 
 #define LOCAL_FILENAME "liboffsetfinder.cpp"
 #include "all_liboffsetfinder.hpp"
 
-extern "C"{
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
 #include <img4tool/img4.h>
-}
 
 using namespace std;
 using namespace tihmstar;
@@ -158,6 +158,7 @@ offsetfinder64::offsetfinder64(const char* filename) : _freeKernel(true),__symta
     _sbops = _find_sbops();
     _release_arm = _find_release_arm();
     _bcopy = _find_bcopy();
+    info("offsetfinder64 done.");
 }
 
 void offsetfinder64::loadSegments(){
@@ -295,8 +296,8 @@ namespace tihmstar{
 }
 
 #pragma mark common patchs
-constexpr char patch_nop[] = "\x1F\x20\x03\xD5";
-constexpr size_t patch_nop_size = sizeof(patch_nop)-1;
+static constexpr char patch_nop[] = "\x1F\x20\x03\xD5";
+static constexpr size_t patch_nop_size = sizeof(patch_nop) - 1;
 
 uint64_t offsetfinder64::find_register_value(loc_t where, int reg, loc_t startAddr){
     insn functop(_segments, where);
@@ -364,6 +365,14 @@ loc_t offsetfinder64::find_kernel_map(){
 
 loc_t offsetfinder64::find_kernel_task(){
     return find_sym("_kernel_task");
+}
+
+loc_t offsetfinder64::find_IOMalloc() {
+    return find_sym("_IOMalloc");
+}
+
+loc_t offsetfinder64::find_IOFree() {
+    return find_sym("_IOFree");
 }
 
 loc_t offsetfinder64::find_realhost(){
@@ -669,6 +678,21 @@ loc_t offsetfinder64::find_rop_add_x0_x0_0x10(){
     }(ropbytes,sizeof(ropbytes)-1,_segments);
 }
 
+loc_t offsetfinder64::find_rop_add_x0_x0_0x40() {
+    constexpr char ropbytes[] = "\x00\x00\x01\x91\xC0\x03\x5F\xD6";
+    return [](const void *little, size_t little_len, vector<text_t>segments)->loc_t{
+        for (auto seg : segments) {
+            if (!seg.isExec)
+                continue;
+            
+            if (loc_t rt = (loc_t)::memmem(seg.map, seg.size, little, little_len)) {
+                return rt-seg.map+seg.base;
+            }
+        }
+        return 0;
+    }(ropbytes,sizeof(ropbytes)-1,_segments);
+}
+
 loc_t offsetfinder64::find_rop_ldr_x0_x0_0x10(){
     constexpr char ropbytes[] = "\x00\x08\x40\xF9\xC0\x03\x5F\xD6";
     return [](const void *little, size_t little_len, vector<text_t>segments)->loc_t{
@@ -685,8 +709,9 @@ loc_t offsetfinder64::find_rop_ldr_x0_x0_0x10(){
 }
 
 #pragma mark patch_finders
-void slide_ptr(class patch *p,uint64_t slide){
-    slide += *(uint64_t*)p->_patch;
+static void
+slide_ptr(patch *p,uintptr_t slide){
+    slide += *(uintptr_t*)p->_patch;
     memcpy((void*)p->_patch, &slide, 8);
 }
 
@@ -710,7 +735,8 @@ patch offsetfinder64::find_sandbox_patch(){
 }
 
 
-patch offsetfinder64::_find_amfi_substrate_patch(){
+patch
+offsetfinder64::_find_amfi_substrate_patch(){
     loc_t str = findstr("AMFI: hook..execve() killing pid %u: %s",false);
     retassure(str, "Failed to find str");
 
@@ -723,7 +749,7 @@ patch offsetfinder64::_find_amfi_substrate_patch(){
     insn tbnz(funcend);
     while (--tbnz != insn::tbnz);
     
-    constexpr char mypatch[] = "\x1F\x20\x03\xD5\x08\x79\x16\x12\x1F\x20\x03\xD5\x00\x00\x80\x52\xE9\x01\x80\x52";
+    static constexpr char mypatch[] = "\x1F\x20\x03\xD5\x08\x79\x16\x12\x1F\x20\x03\xD5\x00\x00\x80\x52\xE9\x01\x80\x52";
     return {(loc_t)tbnz.pc(),mypatch,sizeof(mypatch)-1};
 }
 
@@ -796,7 +822,8 @@ patch offsetfinder64::_find_amfi_patch_offsets(){
         }
         
     }
-    
+    //jscpl: 0xfffffff006e87b00
+    //bl_amfi_memcp 0xfffffff00650db20
     /* find*/
     //movz w0, #0x0
     //ret
@@ -827,7 +854,7 @@ patch offsetfinder64::_find_proc_enforce(){
 }
 
 vector<patch> offsetfinder64::_find_nosuid_off(){
-    loc_t str = findstr("\"mount_common(): mount of %s filesystem failed with %d, but vnode list is not empty.\"", false);
+    loc_t str = findstr("\"mount_common(): mount of %s filesystem failed with %d, but vnode list is not empty.\"", false);//0xfffffff007029d74
     retassure(str, "Failed to find str");
     
     loc_t ref = find_literal_ref(_segments, str);
@@ -840,7 +867,8 @@ vector<patch> offsetfinder64::_find_nosuid_off(){
     loc_t cbnz = find_rel_branch_source(ldr, 1);
     
     insn bl_vfs_context_is64bit(ldr,cbnz);
-    while (--bl_vfs_context_is64bit != insn::bl || bl_vfs_context_is64bit.imm() != (uint64_t)find_sym("_vfs_context_is64bit"));
+    uint64_t sym = (uint64_t)find_sym("_vfs_context_is64bit");
+    while (--bl_vfs_context_is64bit != insn::bl || bl_vfs_context_is64bit.imm() != sym);
     
     //patch1
     insn movk(bl_vfs_context_is64bit);
@@ -849,7 +877,7 @@ vector<patch> offsetfinder64::_find_nosuid_off(){
     //patch2
     insn orr(bl_vfs_context_is64bit);
     while (--orr != insn::orr || movk.imm() != 8);
-    
+    //movk fffffff0071bb070 orr fffffff0071bb058
     return {{(loc_t)movk.pc(),patch_nop,patch_nop_size},{(loc_t)orr.pc(),"\xE9\x03\x08\x2A",4}}; // mov w9, w8
 }
 
@@ -865,7 +893,7 @@ patch offsetfinder64::_find_remount_patch_offset(){
     while (++patchloc != insn::tbz || patchloc.rt() != 8 || patchloc.other() != 6);
     
     --patchloc;
-    
+    //patchloc: 0xfffffff0071bc504
     constexpr char mypatch[] = "\xC8\x00\x80\x52"; //movz w8, #0x6
     return {(loc_t)patchloc.pc(),mypatch,sizeof(mypatch)-1};
 }
@@ -910,9 +938,11 @@ patch offsetfinder64::_find_lwvm_patch_offsets(){
         
     }
     
+    //dstfunc: 0xfffffff0068af8fc dest 0xfffffff006f321a0
     while (++dstfunc != insn::bcond || dstfunc.other() != insn::cond::NE);
     
     loc_t target = (loc_t)dstfunc.imm();
+    //target: 0xfffffff0068af924
     
     return {destination,&target,sizeof(target),slide_ptr};
 }
@@ -1115,13 +1145,4 @@ offsetfinder64::~offsetfinder64(){
     if (_freeKernel) safeFree(_kdata);
 }
 
-
-
-
-
-
-
-
-
-
-//
+#endif //__arm64__

@@ -125,6 +125,7 @@ struct IOSurfaceLockResult {
     uint8_t _pad2[0xdd0-0x18-0x4];
 };
 
+#if !__cplusplus
 struct IOSurfaceValueArgs {
     uint32_t surface_id;
     uint32_t _out1;
@@ -133,6 +134,7 @@ struct IOSurfaceValueArgs {
         char string[0];
     };
 };
+#endif
 
 struct IOSurfaceValueArgs_string {
     uint32_t surface_id;

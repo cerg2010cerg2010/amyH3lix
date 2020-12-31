@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 #include <mach/mach.h>
-#include "offsets.h"
+#include "common.h"
 #include <stdbool.h>
 
 __BEGIN_DECLS
@@ -25,26 +25,38 @@ kern_return_t mach_vm_protect(vm_map_t target_task, mach_vm_address_t address, m
 
 void init_kernel_memory(mach_port_t tfp0);
 
-size_t kread(uint64_t where, void *p, size_t size);
-uint32_t rk32(uint64_t where);
-uint64_t rk64(uint64_t where);
+size_t kread(kptr_t where, void *p, size_t size);
 
-size_t kwrite(uint64_t where, const void *p, size_t size);
-uint64_t kread_uint64(uint64_t where);
-uint32_t kread_uint32(uint64_t where);
-size_t kwrite_uint64(uint64_t where, uint64_t value);
-size_t kwrite_uint32(uint64_t where, uint32_t value);
+#define rk32(where) kread_uint32(where)
+#define rk64(where) kread_uint64(where)
+#define rkptr(where) kread_uintptr(where)
 
-void wk32(uint64_t where, uint32_t what);
-void wk64(uint64_t where, uint64_t what);
+size_t kwrite(kptr_t where, const void *p, size_t size);
+uint64_t kread_uint64(kptr_t where);
+uint32_t kread_uint32(kptr_t where);
+uintptr_t kread_uintptr(kptr_t where);
+size_t kwrite_uint64(kptr_t where, uint64_t value);
+size_t kwrite_uint32(kptr_t where, uint32_t value);
+size_t kwrite_uintptr(kptr_t where, uintptr_t value);
+
+void wk32(kptr_t where, uint32_t what);
+void wk64(kptr_t where, uint64_t what);
+
+#define wk32(where, what) kwrite_uint32(where, what)
+#define wk64(where, what) kwrite_uint64(where, what)
+#if __arm64__
+#define wkptr(where, what) wk64(where, what)
+#else
+#define wkptr(where, what) wk32(where, what)
+#endif
 
 void kfree(mach_vm_address_t address, vm_size_t size);
-uint64_t kalloc(vm_size_t size);
+kptr_t kalloc(vm_size_t size);
 
 kptr_t kmem_alloc(uint64_t size);
-bool kmem_free(kptr_t kaddr, uint64_t size);
+bool kmem_free(mach_vm_address_t kaddr, vm_size_t size);
 
-uint64_t find_port(mach_port_name_t port, uint64_t task_self);
+uintptr_t find_port(mach_port_name_t port, kptr_t task_self);
 
 kptr_t make_fake_task(kptr_t vm_map);
 bool rkbuffer(kptr_t kaddr, void* buffer, size_t length);

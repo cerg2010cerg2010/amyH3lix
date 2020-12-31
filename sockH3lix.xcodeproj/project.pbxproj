@@ -18,13 +18,16 @@
 		87F9E9A22039C51900C90C05 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 87F9E9A12039C51900C90C05 /* main.m */; };
 		87F9E9AD2039C66500C90C05 /* jailbreak.mm in Sources */ = {isa = PBXBuildFile; fileRef = 87F9E9AC2039C66500C90C05 /* jailbreak.mm */; };
 		AC5CB92D2495FC9A00FE7C74 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = AC5CB92C2495FC9A00FE7C74 /* icon.png */; };
+		AC75C2C8258DEE0C0028F1DE /* offsetfinder32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC75C2C7258DEE0C0028F1DE /* offsetfinder32.cpp */; };
+		AC75C2CC258E48DB0028F1DE /* lzssdec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC75C2CA258E48DB0028F1DE /* lzssdec.cpp */; };
+		AC75C2CF258E4BF50028F1DE /* img3dec.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AC75C2CD258E4BF50028F1DE /* img3dec.cpp */; };
+		AC75C2D2258F227E0028F1DE /* patchfinder32.c in Sources */ = {isa = PBXBuildFile; fileRef = AC75C2D1258F227E0028F1DE /* patchfinder32.c */; };
 		ACAAEE302494ED82006BF6AE /* sock_port_exploit.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */; };
 		ACAAEE332494EDA7006BF6AE /* exploit_utilities.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */; };
 		ACAAEE3C2494EE70006BF6AE /* iosurface.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE3B2494EE70006BF6AE /* iosurface.c */; };
 		ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */; };
 		ACAAEE4124950059006BF6AE /* offsets.m in Sources */ = {isa = PBXBuildFile; fileRef = ACAAEE4024950059006BF6AE /* offsets.m */; };
 		ACC7DB5324CB7E1300FCA9B3 /* kutil.m in Sources */ = {isa = PBXBuildFile; fileRef = ACC7DB5224CB7E1300FCA9B3 /* kutil.m */; };
-		ACC7DB5724CBDB3000FCA9B3 /* patchfinder64.c in Sources */ = {isa = PBXBuildFile; fileRef = ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */; };
 		ACC7DB5924CC0CB800FCA9B3 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = ACC7DB5824CC0CB800FCA9B3 /* README.md */; };
 		ACD652B924DFC2FD00254EBB /* launchctl in Resources */ = {isa = PBXBuildFile; fileRef = ACD652B624DFC2FD00254EBB /* launchctl */; };
 		ACD652BA24DFC2FD00254EBB /* tar in Resources */ = {isa = PBXBuildFile; fileRef = ACD652B724DFC2FD00254EBB /* tar */; };
@@ -33,7 +36,7 @@
 		ACD652CB24DFC55800254EBB /* liboffsetfinder64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C524DFC55800254EBB /* liboffsetfinder64.cpp */; };
 		ACD652CC24DFC55800254EBB /* patch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C624DFC55800254EBB /* patch.cpp */; };
 		ACD652CD24DFC55800254EBB /* insn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ACD652C724DFC55800254EBB /* insn.cpp */; };
-		ACD652E824DFCA9800254EBB /* libimg4tool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652E724DFCA9800254EBB /* libimg4tool.a */; };
+		ACD652E824DFCA9800254EBB /* libimg4tool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652E724DFCA9800254EBB /* libimg4tool.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		ACD652EB24E067A400254EBB /* libplist.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652E924E067A300254EBB /* libplist.a */; };
 		ACD652EC24E067A400254EBB /* libplist++.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ACD652EA24E067A400254EBB /* libplist++.a */; };
 /* End PBXBuildFile section */
@@ -46,7 +49,7 @@
 		8757D090203CF2CB00B3A566 /* libapple_crypto.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libapple_crypto.tbd; path = usr/lib/libapple_crypto.tbd; sourceTree = SDKROOT; };
 		8757D092203CF2DB00B3A566 /* libboringssl.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libboringssl.tbd; path = usr/lib/libboringssl.tbd; sourceTree = SDKROOT; };
 		8787FA21203DEF250000BDA5 /* sbops.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sbops.h; sourceTree = "<group>"; };
-		87D07A64203EB74C00C7D96D /* pte_stuff.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pte_stuff.h; sourceTree = "<group>"; };
+		87D07A64203EB74C00C7D96D /* pte_stuff_64.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pte_stuff_64.h; sourceTree = "<group>"; };
 		87F9E98F2039C51900C90C05 /* sockH3lix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sockH3lix.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		87F9E9922039C51900C90C05 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		87F9E9932039C51900C90C05 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -61,6 +64,14 @@
 		87F9E9AC2039C66500C90C05 /* jailbreak.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = jailbreak.mm; sourceTree = "<group>"; };
 		87F9E9AE2039C66D00C90C05 /* jailbreak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = jailbreak.h; sourceTree = "<group>"; };
 		AC5CB92C2495FC9A00FE7C74 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		AC75C2C7258DEE0C0028F1DE /* offsetfinder32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = offsetfinder32.cpp; sourceTree = "<group>"; };
+		AC75C2C9258DEE430028F1DE /* offsetfinder32.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = offsetfinder32.hpp; sourceTree = "<group>"; };
+		AC75C2CA258E48DB0028F1DE /* lzssdec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lzssdec.cpp; sourceTree = "<group>"; };
+		AC75C2CB258E48DB0028F1DE /* lzssdec.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = lzssdec.hpp; sourceTree = "<group>"; };
+		AC75C2CD258E4BF50028F1DE /* img3dec.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = img3dec.cpp; sourceTree = "<group>"; };
+		AC75C2CE258E4BF50028F1DE /* img3dec.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = img3dec.hpp; sourceTree = "<group>"; };
+		AC75C2D0258F227E0028F1DE /* patchfinder32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = patchfinder32.h; sourceTree = "<group>"; };
+		AC75C2D1258F227E0028F1DE /* patchfinder32.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = patchfinder32.c; sourceTree = "<group>"; };
 		ACAAEE2E2494ED82006BF6AE /* sock_port_exploit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sock_port_exploit.h; sourceTree = "<group>"; };
 		ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sock_port_exploit.c; sourceTree = "<group>"; };
 		ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = exploit_utilities.c; sourceTree = "<group>"; };
@@ -72,8 +83,6 @@
 		ACAAEE4024950059006BF6AE /* offsets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = offsets.m; sourceTree = "<group>"; };
 		ACC7DB5224CB7E1300FCA9B3 /* kutil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = kutil.m; sourceTree = "<group>"; };
 		ACC7DB5424CB7E3100FCA9B3 /* kutil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = kutil.h; sourceTree = "<group>"; };
-		ACC7DB5524CBDB3000FCA9B3 /* patchfinder64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = patchfinder64.h; sourceTree = "<group>"; };
-		ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = patchfinder64.c; sourceTree = "<group>"; };
 		ACC7DB5824CC0CB800FCA9B3 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		ACD652B624DFC2FD00254EBB /* launchctl */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = launchctl; path = sockH3lix/jbresources/launchctl; sourceTree = "<group>"; };
 		ACD652B724DFC2FD00254EBB /* tar */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; name = tar; path = sockH3lix/jbresources/tar; sourceTree = "<group>"; };
@@ -150,6 +159,7 @@
 				ACD652D824DFC66A00254EBB /* plist */,
 				ACD652BF24DFC4EE00254EBB /* img4tool */,
 				ACD652BE24DFC48700254EBB /* liboffsetfinder64 */,
+				AC75C2C6258DEDC30028F1DE /* liboffsetfinder32 */,
 				87F9E9912039C51900C90C05 /* sockH3lix */,
 				87F9E9902039C51900C90C05 /* Products */,
 				6848D102203CE93100A0FFE2 /* Frameworks */,
@@ -172,7 +182,7 @@
 				87F9E9952039C51900C90C05 /* ViewController.h */,
 				87F9E9962039C51900C90C05 /* ViewController.m */,
 				8787FA21203DEF250000BDA5 /* sbops.h */,
-				87D07A64203EB74C00C7D96D /* pte_stuff.h */,
+				87D07A64203EB74C00C7D96D /* pte_stuff_64.h */,
 				87F9E9AE2039C66D00C90C05 /* jailbreak.h */,
 				87F9E9AC2039C66500C90C05 /* jailbreak.mm */,
 				6848D0FB203CE91700A0FFE2 /* common.h */,
@@ -183,8 +193,6 @@
 				6848D0FD203CE91700A0FFE2 /* offsets.mm */,
 				ACAAEE3E2494EE8B006BF6AE /* kernel_memory.c */,
 				ACAAEE3D2494EE8B006BF6AE /* kernel_memory.h */,
-				ACC7DB5624CBDB3000FCA9B3 /* patchfinder64.c */,
-				ACC7DB5524CBDB3000FCA9B3 /* patchfinder64.h */,
 				ACAAEE2F2494ED82006BF6AE /* sock_port_exploit.c */,
 				ACAAEE2E2494ED82006BF6AE /* sock_port_exploit.h */,
 				ACAAEE312494EDA7006BF6AE /* exploit_utilities.c */,
@@ -201,6 +209,21 @@
 			path = sockH3lix;
 			sourceTree = "<group>";
 		};
+		AC75C2C6258DEDC30028F1DE /* liboffsetfinder32 */ = {
+			isa = PBXGroup;
+			children = (
+				AC75C2C9258DEE430028F1DE /* offsetfinder32.hpp */,
+				AC75C2C7258DEE0C0028F1DE /* offsetfinder32.cpp */,
+				AC75C2D0258F227E0028F1DE /* patchfinder32.h */,
+				AC75C2D1258F227E0028F1DE /* patchfinder32.c */,
+				AC75C2CA258E48DB0028F1DE /* lzssdec.cpp */,
+				AC75C2CB258E48DB0028F1DE /* lzssdec.hpp */,
+				AC75C2CD258E4BF50028F1DE /* img3dec.cpp */,
+				AC75C2CE258E4BF50028F1DE /* img3dec.hpp */,
+			);
+			path = liboffsetfinder32;
+			sourceTree = "<group>";
+		};
 		ACD652BE24DFC48700254EBB /* liboffsetfinder64 */ = {
 			isa = PBXGroup;
 			children = (
@@ -210,10 +233,10 @@
 				ACD652C924DFC55800254EBB /* exception.hpp */,
 				ACD652C724DFC55800254EBB /* insn.cpp */,
 				ACD652C424DFC55700254EBB /* insn.hpp */,
-				ACD652C524DFC55800254EBB /* liboffsetfinder64.cpp */,
 				ACD652C024DFC55700254EBB /* liboffsetfinder64.hpp */,
-				ACD652C624DFC55800254EBB /* patch.cpp */,
+				ACD652C524DFC55800254EBB /* liboffsetfinder64.cpp */,
 				ACD652C824DFC55800254EBB /* patch.hpp */,
+				ACD652C624DFC55800254EBB /* patch.cpp */,
 			);
 			path = liboffsetfinder64;
 			sourceTree = "<group>";
@@ -329,18 +352,21 @@
 			files = (
 				ACD652CB24DFC55800254EBB /* liboffsetfinder64.cpp in Sources */,
 				ACD652CD24DFC55800254EBB /* insn.cpp in Sources */,
+				AC75C2CC258E48DB0028F1DE /* lzssdec.cpp in Sources */,
 				ACAAEE4124950059006BF6AE /* offsets.m in Sources */,
+				AC75C2CF258E4BF50028F1DE /* img3dec.cpp in Sources */,
 				ACAAEE332494EDA7006BF6AE /* exploit_utilities.c in Sources */,
 				87F9E9972039C51900C90C05 /* ViewController.m in Sources */,
 				87F9E9A22039C51900C90C05 /* main.m in Sources */,
 				87F9E9942039C51900C90C05 /* AppDelegate.m in Sources */,
 				87F9E9AD2039C66500C90C05 /* jailbreak.mm in Sources */,
+				AC75C2D2258F227E0028F1DE /* patchfinder32.c in Sources */,
 				ACAAEE3C2494EE70006BF6AE /* iosurface.c in Sources */,
 				ACAAEE302494ED82006BF6AE /* sock_port_exploit.c in Sources */,
+				AC75C2C8258DEE0C0028F1DE /* offsetfinder32.cpp in Sources */,
 				6848D100203CE91700A0FFE2 /* offsets.mm in Sources */,
 				ACD652CA24DFC55800254EBB /* exception.cpp in Sources */,
 				ACAAEE3F2494EE8B006BF6AE /* kernel_memory.c in Sources */,
-				ACC7DB5724CBDB3000FCA9B3 /* patchfinder64.c in Sources */,
 				ACC7DB5324CB7E1300FCA9B3 /* kutil.m in Sources */,
 				ACD652CC24DFC55800254EBB /* patch.cpp in Sources */,
 			);
@@ -482,6 +508,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4BNWD349PE;
 				ENABLE_BITCODE = NO;
@@ -499,8 +526,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sxx.sockH3lix;
 				PRODUCT_NAME = sockH3lix;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = arm64;
+				VALID_ARCHS = "armv7 arm64";
 			};
 			name = Debug;
 		};
@@ -508,6 +536,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 4BNWD349PE;
 				ENABLE_BITCODE = NO;
@@ -525,8 +554,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.sxx.sockH3lix;
 				PRODUCT_NAME = sockH3lix;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = arm64;
+				VALID_ARCHS = "armv7 arm64";
 			};
 			name = Release;
 		};

@@ -73,7 +73,8 @@ double uptime(){
 
 - (IBAction)go:(id)sender {
     self.gobtn.enabled = false;
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0) , ^{
+    postProgress(@"looking up offset");
+    dispatch_async(jailbreak_queue , ^{
 
         struct utsname name;
         uname(&name);

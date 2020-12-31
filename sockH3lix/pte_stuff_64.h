@@ -1,12 +1,5 @@
-#ifndef pte_stuff_h
-#define pte_stuff_h
-
-size_t kread(uint64_t where, void *p, size_t size);
-uint64_t kread_uint64(uint64_t where);
-uint32_t kread_uint32(uint64_t where);
-size_t kwrite(uint64_t where, const void *p, size_t size);
-size_t kwrite_uint64(uint64_t where, uint64_t value);
-size_t kwrite_uint32(uint64_t where, uint32_t value);
+#ifndef pte_stuff_64_h
+#define pte_stuff_64_h
 
 #define TTE_INDEX_SHIFT 3
 #define TTE_SIZE (1 << TTE_INDEX_SHIFT)
@@ -28,8 +21,6 @@ size_t kwrite_uint32(uint64_t where, uint32_t value);
 #define TTE_BLOCK_ATTR_CONTIG_MASK (1ULL << 52)
 #define TTE_BLOCK_ATTR_PXN_MASK (1ULL << 53)
 #define TTE_BLOCK_ATTR_UXN_MASK (1ULL << 54)
-#define VIRT_TO_PHYS(vaddr) (vaddr - gVirtBase + gPhysBase)
-#define PHYS_TO_VIRT(paddr) (paddr - gPhysBase + gVirtBase)
 uint64_t gPhysBase,gVirtBase,pmap_store,level1_table,hibit_guess;
 
 typedef union VMA_4K {
@@ -67,7 +58,7 @@ void checkvad() {
         struct utsname u = { 0 };
         uname(&u);
         host_page_size(mach_host_self(), &sz);
-        NSLog(@"checkvad: %lx %x", sz, getpagesize());
+        NSLog(@"checkvad: %lx %x", (uintptr_t)sz, getpagesize());
         if (strstr(u.machine, "iPad5,") == u.machine) {
             sz = 4096; // this is 4k but host_page_size lies to us
         }

@@ -105,8 +105,10 @@ namespace tihmstar {
         uint32_t             find_sizeof_task();
         
         patchfinder64::loc_t find_rop_add_x0_x0_0x10();
+        patchfinder64::loc_t find_rop_add_x0_x0_0x40();
         patchfinder64::loc_t find_rop_ldr_x0_x0_0x10();
-        
+        patchfinder64::loc_t find_IOMalloc();
+        patchfinder64::loc_t find_IOFree();
         
         /*------------------------ kernelpatches -------------------------- */
         patchfinder64::patch _find_i_can_has_debugger_patch_off();
@@ -121,6 +123,21 @@ namespace tihmstar {
         patchfinder64::loc_t _find_sbops();
         patchfinder64::patch _find_nonceEnabler_patch();
         patchfinder64::patch find_nonceEnabler_patch_nosym();
+        
+        inline std::vector<patchfinder64::patch> all_patches() {
+            return {
+                find_i_can_has_debugger_patch_off(),
+                find_remount_patch_offset(),
+                find_lwvm_patch_offsets(),
+                _nosuid_off.at(0),
+                _nosuid_off.at(1),
+                find_proc_enforce(),
+                find_amfi_patch_offsets(),
+                find_cs_enforcement_disable_amfi(),
+                find_amfi_substrate_patch(),
+                find_nonceEnabler_patch()
+            };
+        }
 
         
         /*------------------------ KPP bypass -------------------------- */
@@ -130,6 +147,10 @@ namespace tihmstar {
         patchfinder64::loc_t _find_cpacr_write();
         patchfinder64::loc_t _find_idlesleep_str_loc();
         patchfinder64::loc_t _find_deepsleep_str_loc();
+        
+        inline patchfinder64::loc_t linker_base() {
+            return (loc_t)0xfffffff007004000;
+        }
         
         inline patchfinder64::loc_t find_bcopy() {
             return _bcopy;
@@ -149,16 +170,16 @@ namespace tihmstar {
         inline patchfinder64::loc_t find_deepsleep_str_loc() {
             return _deepsleep_str_loc;
         }
-        inline patchfinder64::patch find_i_can_has_debugger_patch_off() {
+        inline const patchfinder64::patch &find_i_can_has_debugger_patch_off() const {
             return _i_can_has_debugger_patch_off;
         }
         inline patchfinder64::patch find_lwvm_patch_offsets() {
             return _lwvm_patch_offsets;
         }
-        inline patchfinder64::patch find_remount_patch_offset() {
+        constexpr inline const patchfinder64::patch &find_remount_patch_offset() const {
             return _remount_patch_offset;
         }
-        inline std::vector<patchfinder64::patch> find_nosuid_off() {
+        constexpr inline const std::vector<patchfinder64::patch> &find_nosuid_off() const {
             return _nosuid_off;
         }
         inline patchfinder64::patch find_proc_enforce() {
@@ -173,7 +194,7 @@ namespace tihmstar {
         inline patchfinder64::patch find_amfi_substrate_patch() {
             return _amfi_substrate_patch;
         }
-        inline patchfinder64::loc_t find_sbops() {
+        constexpr inline patchfinder64::loc_t find_sbops() const {
             return _sbops;
         }
         inline patchfinder64::patch find_nonceEnabler_patch() {
