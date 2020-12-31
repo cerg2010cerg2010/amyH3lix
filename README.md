@@ -1,14 +1,16 @@
 # sockH3lix
 
-Jailbreak for iOS 10.x 64bit devices without KTRR in one second.
-Jailbreak for iOS 10.3.4 iPhone5,2 in an instant.
+### Jailbreak for iOS 10.x 64bit devices without KTRR in one second.
+
+### Jailbreak for iOS 10.3.4 iPhone5,2 in an instant.
+
 This should be the best variant of H3lix jailbreak tool.
 
 **Replace the exploit from v0rtex to [sock port](https://github.com/jakeajames/sock_port) with higher success rate and shorter time.**
 
 Kernel patches and other resources are inherited from doubleH3lix.
 
-**Only test on my 5s (10.3.3) and 5(10.3.4).** 10.x 64bit KPP devices is supported in theory. **Use at your own risk.**
+**Only test on my 5s (10.3.3) and 5 (10.3.4).** 10.x 64bit KPP devices is supported in theory. **Use at your own risk.**
 
 This jailbreak tool is compatible with doubleH3lix, which means you can switch between them at any time.
 
