@@ -1,4 +1,4 @@
-# sockH3lix
+# amyH3lix
 
 ### Jailbreak for iOS 10.x 64bit devices without KTRR in one second.
 
@@ -10,9 +10,9 @@ This should be the best variant of H3lix jailbreak tool.
 
 Kernel patches and other resources are inherited from doubleH3lix.
 
-**Only test on my 5s (10.3.3) and 5 (10.3.4).** 10.x 64bit KPP devices is supported in theory. **Use at your own risk.**
+**Only tested on my 5s (10.3.3).** 10.x 64bit KPP devices is supported in theory. **Use at your own risk.**
 
-This jailbreak tool is compatible with doubleH3lix, which means you can switch between them at any time.
+This jailbreak tool is ***no longer compatible*** with doubleH3lix, which means you can ***NOT*** switch between them ***AT ALL***. Use Cydia Eraser
 
 ## Additional modifications:
 - Exploit
@@ -31,3 +31,8 @@ This jailbreak tool is compatible with doubleH3lix, which means you can switch b
   - Choose a right size of the fake IOTrap while initializing kexec.
   - Use a large number of Mach primitives and other syscalls that affect scheduling to increase stability.
   - kexec some hardware codes to flush the cache and TLB instead of waiting for the kpp patch to work.
+- Bootstrap
+    - Switch to Procursus bootstrap
+    - Use Zebra instead of the aging Cydia package manager
+- User interface
+    - Dark Mode
