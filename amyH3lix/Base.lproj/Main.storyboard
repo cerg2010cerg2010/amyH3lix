@@ -51,30 +51,18 @@
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ahH-xF-ySJ">
-                                <rect key="frame" x="5" y="61" width="310" height="128"/>
-                                <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="amyH3lix" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BVO-DH-O9N">
-                                        <rect key="frame" x="-0.30480167014627568" y="-6" width="309.99999999999989" height="133.99999999999994"/>
-                                        <fontDescription key="fontDescription" name="KohinoorBangla-Regular" family="Kohinoor Bangla" pointSize="69"/>
-                                        <color key="textColor" systemColor="systemPurpleColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                </subviews>
-                                <color key="backgroundColor" red="0.043137254899999998" green="0.039225296430000001" blue="0.054901960780000002" alpha="1" colorSpace="calibratedRGB"/>
-                                <constraints>
-                                    <constraint firstItem="BVO-DH-O9N" firstAttribute="leading" secondItem="ahH-xF-ySJ" secondAttribute="leading" constant="73" id="1ve-5r-VQq"/>
-                                    <constraint firstAttribute="width" constant="310" id="AqI-Zc-Bsh"/>
-                                    <constraint firstAttribute="height" constant="128" id="eQA-xd-eLU"/>
-                                    <constraint firstItem="BVO-DH-O9N" firstAttribute="top" secondItem="ahH-xF-ySJ" secondAttribute="top" constant="11.5" id="fHG-sq-ScE"/>
-                                    <constraint firstAttribute="trailing" secondItem="BVO-DH-O9N" secondAttribute="trailing" constant="11.5" id="nxD-or-2hA"/>
-                                </constraints>
-                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="amyH3lix" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KaG-On-5Ax">
+                                <rect key="frame" x="23" y="69" width="275" height="83"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="69"/>
+                                <color key="textColor" systemColor="systemPurpleColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" red="0.043137254901960784" green="0.039225296427806221" blue="0.054901960784313725" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="y4g-H7-kgJ" secondAttribute="trailing" constant="22" id="2nT-f2-WNU"/>
+                            <constraint firstItem="KaG-On-5Ax" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="6DO-wS-SJQ"/>
                             <constraint firstItem="I2C-A3-Dsw" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="8G8-RD-dXq"/>
                             <constraint firstItem="y4g-H7-kgJ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="26" id="Bzm-WR-fgq">
                                 <string key="userLabel">iOS 10.x jailbreak by sxx with the sock port exploit(Jake James). Patches and other resources are inherited from doubleH3lix(tihmstar). Special thanks to Jake James, tihmstar, qwertyoruiop jk9357.leading = Safe Area.leading + 26</string>
@@ -82,10 +70,9 @@
                             <constraint firstItem="I2C-A3-Dsw" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="G0G-mG-kTr"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="y4g-H7-kgJ" secondAttribute="bottom" constant="14" id="QRy-Ps-CeS"/>
                             <constraint firstItem="EGB-Uo-0QW" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="R3y-Yz-PHw"/>
+                            <constraint firstItem="KaG-On-5Ax" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="69" id="SM8-Nr-8zM"/>
                             <constraint firstItem="EGB-Uo-0QW" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="jG6-8o-0ef"/>
                             <constraint firstItem="I2C-A3-Dsw" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="kDA-hi-eRa"/>
-                            <constraint firstItem="ahH-xF-ySJ" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="61" id="lcx-G7-H45"/>
-                            <constraint firstItem="ahH-xF-ySJ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="rME-7u-dR6"/>
                         </constraints>
                     </view>
                     <connections>
@@ -98,6 +85,7 @@
             <point key="canvasLocation" x="31.875" y="32.74647887323944"/>
         </scene>
     </scenes>
+    <color key="tintColor" systemColor="systemPurpleColor"/>
     <resources>
         <systemColor name="systemPurpleColor">
             <color red="0.68627450980392157" green="0.32156862745098042" blue="0.87058823529411766" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
