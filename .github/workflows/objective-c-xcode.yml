@@ -8,7 +8,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
       - name: Install Dependencies
-        run: brew install ldid xz
+        run: brew install ldid xz zip
       - uses: actions/checkout@v2
       - name: submodules-init
         uses: snickerbockers/submodules-init@v4
@@ -16,9 +16,11 @@ jobs:
         run: |
           xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk iphoneos
           strip build/Release-iphoneos/amyH3lix.app/amyH3lix
+          ln -sf build/Release-iphoneos Payload
+          zip -r9 amyH3lix.ipa Payload/amyH3lix.app
           
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.4
         with:
-         name: doubleH3lix.ipa
-         path: "doubleH3lix.ipa"
+         name: amyH3lix.ipa
+         path: "amyH3lix.ipa"
