@@ -1032,8 +1032,8 @@ int easyPosixSpawn(NSURL *launchPath,NSArray *arguments){
     for (int i=0; i<posixSpawnArguments.count; i++)
         args[i]=(char *)[posixSpawnArguments[i]UTF8String];
 
-    printf("File exists at launch path: %d\n",[[NSFileManager defaultManager]fileExistsAtPath:launchPath.path]);
-    printf("Executing %s: %s\n",launchPath.path.UTF8String,arguments.description.UTF8String);
+    NSLog(@"File exists at launch path: %d\n",[[NSFileManager defaultManager]fileExistsAtPath:launchPath.path]);
+    NSLog(@"Executing %s: %s\n",launchPath.path.UTF8String,arguments.description.UTF8String);
 
     posix_spawn_file_actions_t action;
     posix_spawn_file_actions_init(&action);
