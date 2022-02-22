@@ -15,7 +15,7 @@ jobs:
       - name: Build
         run: |
           xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk iphoneos
-          strip Build/Release-iphoneos/doubleH3lix.app/doubleH3lix 
+          strip build/Release-iphoneos/amyH3lix.app/amyH3lix
           
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.4
