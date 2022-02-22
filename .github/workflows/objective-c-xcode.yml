@@ -14,7 +14,7 @@ jobs:
         uses: snickerbockers/submodules-init@v4
       - name: Build
         run: |
-          xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO -sdk iphoneos
+          xcodebuild clean build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO -sdk iphoneos
           strip Build/Release-iphoneos/doubleH3lix.app/doubleH3lix 
           
       - name: Upload a Build Artifact
